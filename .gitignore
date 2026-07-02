@@ -13,6 +13,16 @@ dist
 dist-ssr
 *.local
 
+# Environment files
+.env
+
+# Maven build output
+backend/target/
+backend/null
+
+# Let's Encrypt certificates
+certbot/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
