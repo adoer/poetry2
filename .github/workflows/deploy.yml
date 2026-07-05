@@ -85,7 +85,16 @@ jobs:
             if [ -d "$PROJECT_DIR" ]; then
               if [ ! -d "$PROJECT_DIR/.git" ]; then
                 echo "Directory exists but is not a git repository. Removing and re-cloning..."
+                # 备份 .env，防止被删除
+                if [ -f "$PROJECT_DIR/.env" ]; then
+                  cp "$PROJECT_DIR/.env" /tmp/poetry2_env_backup
+                fi
                 rm -rf "$PROJECT_DIR"
+                git clone https://github.com/$GITHUB_REPOSITORY.git "$PROJECT_DIR"
+                # 恢复 .env
+                if [ -f /tmp/poetry2_env_backup ]; then
+                  cp /tmp/poetry2_env_backup "$PROJECT_DIR/.env"
+                fi
               fi
             fi
             if [ ! -d "$PROJECT_DIR" ]; then
