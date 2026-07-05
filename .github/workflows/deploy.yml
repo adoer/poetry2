@@ -1,0 +1,87 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_TAG: latest
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ env.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: frontend/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          envs: REGISTRY,GITHUB_REPOSITORY,IMAGE_TAG
+          script: |
+            set -e
+
+            PROJECT_DIR="/opt/poetry2"
+
+            if [ ! -d "$PROJECT_DIR" ]; then
+              echo "Cloning repository for the first time..."
+              git clone https://github.com/$GITHUB_REPOSITORY.git "$PROJECT_DIR"
+            fi
+
+            cd "$PROJECT_DIR"
+
+            git pull
+
+            if [ ! -f .env ]; then
+              echo "Error: .env file not found in $PROJECT_DIR"
+              echo "Create one from .env.example before deploying."
+              exit 1
+            fi
+
+            echo "${{ secrets.SERVER_GITHUB_TOKEN }}" | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
+
+            cat > docker-compose.prod.yml << DEOF
+            services:
+              backend:
+                image: ghcr.io/${GITHUB_REPOSITORY}/backend:${IMAGE_TAG}
+              nginx:
+                image: ghcr.io/${GITHUB_REPOSITORY}/frontend:${IMAGE_TAG}
+            DEOF
+
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
+            docker image prune -f
