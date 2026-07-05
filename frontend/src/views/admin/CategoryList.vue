@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '../../api'
 import type { Category } from '../../types'
-import { ElMessage, ElMessageBox } from 'element-plus'
 
 const categories = ref<Category[]>([])
 const dialogVisible = ref(false)

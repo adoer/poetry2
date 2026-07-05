@@ -3,7 +3,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAdminNews, deleteNews } from '../../api'
 import type { NewsItem } from '../../types'
-import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const newsList = ref<NewsItem[]>([])

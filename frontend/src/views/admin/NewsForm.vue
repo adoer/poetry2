@@ -3,7 +3,6 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getAdminNewsDetail, createNews, updateNews, getCategories } from '../../api'
 import type { Category } from '../../types'
-import { ElMessage } from 'element-plus'
 
 const route = useRoute()
 const router = useRouter()
