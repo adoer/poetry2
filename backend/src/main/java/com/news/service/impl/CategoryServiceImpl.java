@@ -6,6 +6,8 @@ import com.news.exception.ResourceNotFoundException;
 import com.news.repository.CategoryRepository;
 import com.news.repository.NewsRepository;
 import com.news.service.CategoryService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -23,6 +25,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Cacheable(value = "categories", unless = "#result.isEmpty()")
     public List<Category> findAll() {
         return categoryRepository.findAll();
     }
@@ -33,12 +36,14 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Cacheable(value = "categories", key = "#id")
     public Category findById(Long id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("分类不存在"));
     }
 
     @Override
+    @CacheEvict(value = "categories", allEntries = true)
     public Category create(String name) {
         if (categoryRepository.existsByName(name)) {
             throw new BusinessException("分类名称已存在");
@@ -49,6 +54,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @CacheEvict(value = "categories", allEntries = true)
     public Category update(Long id, String name) {
         Category category = findById(id);
         if (!category.getName().equals(name) && categoryRepository.existsByName(name)) {
@@ -59,6 +65,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @CacheEvict(value = "categories", allEntries = true)
     public void delete(Long id) {
         Category category = findById(id);
         if (newsRepository.countByCategoryId(id) > 0) {

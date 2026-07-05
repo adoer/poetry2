@@ -29,10 +29,14 @@ export default defineConfig({
       output: {
         manualChunks(id: string) {
           if (id.includes('node_modules')) {
-            if (id.includes('vue')) return 'vendor'
+            if (id.includes('vue')) return 'vendor-vue'
+            if (id.includes('element-plus')) return 'vendor-element'
+            if (id.includes('axios')) return 'vendor-axios'
+            return 'vendor-other'
           }
         },
       },
     },
+    chunkSizeWarningLimit: 300,
   },
 })

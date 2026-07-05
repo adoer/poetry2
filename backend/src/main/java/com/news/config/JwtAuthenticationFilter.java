@@ -2,6 +2,7 @@ package com.news.config;
 
 import com.news.util.JwtUtil;
 import com.news.util.TokenBlacklist;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,15 +35,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = extractToken(request);
 
-        if (StringUtils.hasText(token)) {
-            if (tokenBlacklist.contains(token)) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            if (jwtUtil.validateToken(token)) {
-                Long userId = jwtUtil.getUserId(token);
-                String role = jwtUtil.getRole(token);
+        if (StringUtils.hasText(token) && !tokenBlacklist.contains(token)) {
+            try {
+                Claims claims = jwtUtil.parseToken(token);
+                Long userId = Long.parseLong(claims.getSubject());
+                String role = claims.get("role", String.class);
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
@@ -50,6 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                 List.of(new SimpleGrantedAuthority("ROLE_" + role))
                         );
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (Exception ignored) {
             }
         }
 

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import axiosRetry from 'axios-retry'
 import type { ApiResult, Category, NewsItem, PageResult, LoginRequest, LoginResponse } from '../types'
 
 let routerInstance: ReturnType<typeof import('vue-router').createRouter> | null = null
@@ -10,7 +11,10 @@ export function setRouter(router: ReturnType<typeof import('vue-router').createR
 const http = axios.create({
   baseURL: '/api',
   timeout: 10000,
+  headers: { 'Content-Type': 'application/json' },
 })
+
+axiosRetry(http, { retries: 3, retryDelay: axiosRetry.exponentialDelay })
 
 http.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')

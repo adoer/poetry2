@@ -5,6 +5,7 @@ package com.news;
 import org.springframework.boot.SpringApplication;
 // 导入 Spring Boot 自动配置注解，启用自动化配置
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 
 /**
  * 新闻管理系统的 Spring Boot 启动入口类
@@ -12,6 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 // 组合注解：@EnableAutoConfiguration + @ComponentScan + @Configuration，自动扫描并配置整个 Spring 应用
 @SpringBootApplication
+@EnableCaching
 // 主应用类定义
 public class NewsApplication {
 

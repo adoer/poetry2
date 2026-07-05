@@ -15,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<NewsDTO> getPublicNews(Long categoryId, String keyword, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<News> newsPage;
@@ -55,6 +57,7 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public NewsDTO getPublicNewsById(Long id) {
         News news = newsRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("新闻不存在"));
@@ -65,6 +68,7 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<NewsDTO> getAdminNews(String keyword, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<News> newsPage;
@@ -80,6 +84,7 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public NewsDTO getAdminNewsById(Long id) {
         News news = newsRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("新闻不存在"));

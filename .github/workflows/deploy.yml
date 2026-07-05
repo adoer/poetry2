@@ -1,97 +1,89 @@
-# 工作流名称
 name: Build and Deploy
 
-# 触发条件：推送到 main 分支时执行
 on:
   push:
     branches: [ main ]
 
-# 全局环境变量
 env:
-  REGISTRY: ghcr.io                  # 容器镜像仓库地址（GitHub Container Registry）
-  IMAGE_TAG: latest                  # 镜像标签
+  REGISTRY: ghcr.io
 
-# 任务定义
 jobs:
-  # 构建并部署任务
   build-and-deploy:
-    runs-on: ubuntu-latest           # 运行环境：最新版 Ubuntu
-    permissions:                     # 任务权限
-      contents: read                 # 允许读取仓库代码
-      packages: write                # 允许写入 GitHub Packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
-    # 任务步骤
     steps:
-      # 步骤1：检出仓库代码
       - uses: actions/checkout@v4
 
-      # 步骤2：登录到 GitHub Container Registry
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('backend/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ env.REGISTRY }}           # 镜像仓库地址
-          username: ${{ github.actor }}            # GitHub 用户名
-          password: ${{ secrets.GITHUB_TOKEN }}    # GitHub Token（自动提供）
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 步骤3：构建并推送后端镜像
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
-          context: .                               # Docker Build 上下文路径
-          file: backend/Dockerfile                 # Dockerfile 路径
-          push: true                               # 构建后推送到仓库
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ env.IMAGE_TAG }}  # 镜像标签
-          cache-from: type=gha                     # 从 GitHub Actions 缓存读取
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ github.repository }}/backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      # 步骤4：构建并推送前端镜像
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
         with:
-          context: .                               # Docker Build 上下文路径
-          file: frontend/Dockerfile                # Dockerfile 路径
-          push: true                               # 构建后推送到仓库
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }}  # 镜像标签
-          cache-from: type=gha                     # 从 GitHub Actions 缓存读取
+          context: .
+          file: frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ github.repository }}/frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      # 步骤5：通过 SSH 部署到服务器
       - name: Deploy to server
-        uses: appleboy/ssh-action@v1.0.3           # SSH 远程执行 Action
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SERVER_HOST }}         # 服务器地址
-          username: ${{ secrets.SERVER_USER }}     # SSH 用户名
-          key: ${{ secrets.SERVER_SSH_KEY }}       # SSH 私钥
-          envs: REGISTRY,GITHUB_REPOSITORY,IMAGE_TAG  # 需要传递的环境变量
-          script: |                                # 在远程服务器上执行的脚本
-            # 遇到错误立即退出
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          envs: REGISTRY,GITHUB_REPOSITORY,GITHUB_SHA
+          script: |
             set -e
 
-            # 自动安装 Docker（如果未安装）
-            if ! command -v docker &> /dev/null; then
-              echo "Installing Docker..."
-              curl -fsSL https://get.docker.com | sh
-              usermod -aG docker $USER
-            fi
-
-            # 自动安装 Docker Compose 插件（如果未安装）
-            if ! docker compose version &> /dev/null; then
-              echo "Installing Docker Compose plugin..."
-              apt-get update -qq && apt-get install -y -qq docker-compose-plugin
-            fi
-
-            # 项目部署目录
             PROJECT_DIR="/opt/poetry2"
 
-            # 确保项目目录存在且是 git 仓库
             if [ -d "$PROJECT_DIR" ]; then
               if [ ! -d "$PROJECT_DIR/.git" ]; then
                 echo "Directory exists but is not a git repository. Removing and re-cloning..."
-                # 备份 .env，防止被删除
                 if [ -f "$PROJECT_DIR/.env" ]; then
                   cp "$PROJECT_DIR/.env" /tmp/poetry2_env_backup
                 fi
                 rm -rf "$PROJECT_DIR"
                 git clone https://github.com/$GITHUB_REPOSITORY.git "$PROJECT_DIR"
-                # 恢复 .env
                 if [ -f /tmp/poetry2_env_backup ]; then
                   cp /tmp/poetry2_env_backup "$PROJECT_DIR/.env"
                 fi
@@ -102,23 +94,19 @@ jobs:
               git clone https://github.com/$GITHUB_REPOSITORY.git "$PROJECT_DIR"
             fi
 
-            # 进入项目目录
             cd "$PROJECT_DIR"
-
-            # 拉取最新代码
             git pull
 
-            # 检查 .env 文件是否存在（必须手动创建）
             if [ ! -f .env ]; then
               echo "Error: .env file not found in $PROJECT_DIR"
               echo "Create one from .env.example before deploying."
               exit 1
             fi
 
-            # 用部署 Token 登录容器仓库
             echo "${{ secrets.SERVER_GITHUB_TOKEN }}" | docker login $REGISTRY -u ${{ github.actor }} --password-stdin
 
-            # 动态生成 docker-compose.prod.yml（使用远程变量）
+            IMAGE_TAG=$GITHUB_SHA
+
             cat > docker-compose.prod.yml << DEOF
             services:
               backend:
@@ -127,9 +115,7 @@ jobs:
                 image: ghcr.io/${GITHUB_REPOSITORY}/frontend:${IMAGE_TAG}
             DEOF
 
-            # 拉取最新镜像并启动容器
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
             docker rm -f poetry2-mariadb poetry2-backend poetry2-nginx 2>/dev/null || true
             docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
-            # 清理未使用的镜像
             docker image prune -f
