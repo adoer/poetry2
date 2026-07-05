@@ -1,13 +1,21 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
+interface UserInfo {
+  username: string
+  role: string
+}
+
 export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
-  let savedUser = {}
+  let savedUser: UserInfo | null = null
   try {
-    savedUser = JSON.parse(localStorage.getItem('user') || '{}')
+    const parsed = JSON.parse(localStorage.getItem('user') || 'null')
+    if (parsed && typeof parsed === 'object' && 'username' in parsed && 'role' in parsed) {
+      savedUser = parsed as UserInfo
+    }
   } catch {}
-  const userInfo = ref(savedUser)
+  const userInfo = ref<UserInfo | null>(savedUser)
 
   const isLoggedIn = computed(() => !!token.value)
   const isAdmin = computed(() => userInfo.value?.role === 'ADMIN')
@@ -23,7 +31,7 @@ export const useUserStore = defineStore('user', () => {
 
   function logout() {
     token.value = ''
-    userInfo.value = {}
+    userInfo.value = null
     localStorage.removeItem('token')
     localStorage.removeItem('user')
   }
