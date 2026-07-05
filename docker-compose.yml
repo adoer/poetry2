@@ -54,8 +54,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
+      - ./ssl:/etc/nginx/ssl
     depends_on:
       - backend
     logging:
@@ -63,24 +62,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
-  certbot:
-    image: certbot/certbot
-    container_name: poetry2-certbot
-    restart: unless-stopped
-    volumes:
-      - ./certbot/www:/var/www/certbot
-      - ./certbot/conf:/etc/letsencrypt
-    depends_on:
-      - nginx
-    entrypoint: >
-      /bin/sh -c '
-        trap exit TERM;
-        while :; do
-          certbot renew --webroot -w /var/www/certbot --quiet;
-          sleep 12h & wait $!;
-        done
-      '
 
 volumes:
   mariadb-data:
