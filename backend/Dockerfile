@@ -9,4 +9,4 @@ FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/news-backend-1.0.0.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-Xms384m", "-Xmx512m", "-XX:MaxMetaspaceSize=128m", "-XX:+UseSerialGC", "-XX:CICompilerCount=2", "-XX:MaxDirectMemorySize=64m", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-Duser.timezone=Asia/Shanghai", "-Xms384m", "-Xmx512m", "-XX:MaxMetaspaceSize=128m", "-XX:+UseSerialGC", "-XX:CICompilerCount=2", "-XX:MaxDirectMemorySize=64m", "-jar", "app.jar"]
