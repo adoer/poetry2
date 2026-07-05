@@ -3,6 +3,8 @@ services:
     image: mariadb:10.11
     container_name: poetry2-mariadb
     restart: unless-stopped
+    ports:
+      - "3306:3306"
     environment:
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
       MARIADB_DATABASE: ${MARIADB_DATABASE}
