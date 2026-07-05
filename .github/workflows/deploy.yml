@@ -129,6 +129,7 @@ jobs:
 
             # 拉取最新镜像并启动容器
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans --force-recreate
+            docker rm -f poetry2-mariadb poetry2-backend poetry2-nginx 2>/dev/null || true
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
             # 清理未使用的镜像
             docker image prune -f
