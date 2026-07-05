@@ -42,7 +42,6 @@ jobs:
           push: true                               # 构建后推送到仓库
           tags: ${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ env.IMAGE_TAG }}  # 镜像标签
           cache-from: type=gha                     # 从 GitHub Actions 缓存读取
-          cache-to: type=gha,mode=max              # 写入 GitHub Actions 缓存（最大模式）
 
       # 步骤4：构建并推送前端镜像
       - name: Build and push frontend image
@@ -53,7 +52,6 @@ jobs:
           push: true                               # 构建后推送到仓库
           tags: ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ env.IMAGE_TAG }}  # 镜像标签
           cache-from: type=gha                     # 从 GitHub Actions 缓存读取
-          cache-to: type=gha,mode=max              # 写入 GitHub Actions 缓存（最大模式）
 
       # 步骤5：通过 SSH 部署到服务器
       - name: Deploy to server
