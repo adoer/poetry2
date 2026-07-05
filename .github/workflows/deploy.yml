@@ -81,9 +81,15 @@ jobs:
             # 项目部署目录
             PROJECT_DIR="/opt/poetry2"
 
-            # 首次部署时克隆仓库
+            # 确保项目目录存在且是 git 仓库
+            if [ -d "$PROJECT_DIR" ]; then
+              if [ ! -d "$PROJECT_DIR/.git" ]; then
+                echo "Directory exists but is not a git repository. Removing and re-cloning..."
+                rm -rf "$PROJECT_DIR"
+              fi
+            fi
             if [ ! -d "$PROJECT_DIR" ]; then
-              echo "Cloning repository for the first time..."
+              echo "Cloning repository..."
               git clone https://github.com/$GITHUB_REPOSITORY.git "$PROJECT_DIR"
             fi
 
