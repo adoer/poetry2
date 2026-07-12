@@ -1,6 +1,10 @@
 import axios from 'axios'
 import axiosRetry from 'axios-retry'
-import type { ApiResult, Category, NewsItem, PageResult, LoginRequest, LoginResponse } from '../types'
+import type {
+  ApiResult, LoginRequest, LoginResponse, SignupRequest,
+  PoesyItem, AuthorItem, QuotesItem, FavoriteItem,
+  RecommendItem, SearchResult
+} from '../types'
 
 let routerInstance: ReturnType<typeof import('vue-router').createRouter> | null = null
 
@@ -40,54 +44,66 @@ http.interceptors.response.use(
   },
 )
 
+export function getCaptcha() {
+  return http.get<ApiResult<{ image: string }>>('/captcha')
+}
+
 export function login(data: LoginRequest) {
-  return http.post<ApiResult<LoginResponse>>('/auth/login', data)
+  return http.post<ApiResult<LoginResponse>>('/login', data)
+}
+
+export function signup(data: SignupRequest) {
+  return http.post<ApiResult<LoginResponse>>('/signup', data)
 }
 
 export function logout() {
-  return http.post<ApiResult<null>>('/auth/logout')
+  return http.post<ApiResult<null>>('/logout')
+}
+
+export function modifyPassword(data: { passwordOld: string; passwordNew: string }) {
+  return http.put<ApiResult<null>>('/modifypassword', data)
+}
+
+export function getPoesy(params: { keyword?: string; pageNum?: number; id?: number }) {
+  return http.get<ApiResult<{ pageNum: number; list: PoesyItem[] } | PoesyItem>>('/poesy', { params })
+}
+
+export function getAuthors(params: { id?: number; pageNum?: number }) {
+  return http.get<ApiResult<AuthorItem[] | AuthorItem>>('/authors', { params })
+}
+
+export function getWriters() {
+  return http.get<ApiResult<{ name: string; id: number }[]>>('/writers')
+}
+
+export function getQuotes(params: { pageNum?: number }) {
+  return http.get<ApiResult<QuotesItem[]>>('/quotes', { params })
 }
 
 export function getCategories() {
-  return http.get<ApiResult<Category[]>>('/categories')
+  return http.get<ApiResult<string[]>>('/category')
 }
 
-export function getNews(params: { categoryId?: number; keyword?: string; page?: number; size?: number }) {
-  return http.get<ApiResult<PageResult<NewsItem>>>('/news', { params })
+export function getCategoryDetail(category: string) {
+  return http.get<ApiResult<{ id: number; writer: string; title: string }[]>>('/category/detail', { params: { category } })
 }
 
-export function getNewsDetail(id: number) {
-  return http.get<ApiResult<NewsItem>>(`/news/${id}`)
+export function searchAll(keyword: string) {
+  return http.get<ApiResult<SearchResult>>('/searchAll', { params: { keyword } })
 }
 
-export function getAdminNews(params: { keyword?: string; page?: number; size?: number }) {
-  return http.get<ApiResult<PageResult<NewsItem>>>('/admin/news', { params })
+export function getRecommend() {
+  return http.get<ApiResult<RecommendItem[]>>('/recommend')
 }
 
-export function createNews(data: Partial<NewsItem>) {
-  return http.post<ApiResult<NewsItem>>('/admin/news', data)
+export function getFavorites() {
+  return http.get<ApiResult<FavoriteItem[]>>('/favorite')
+}
+export function addFavorite(data: { id: string; type: string; title: string; content: string; writer: string }) {
+  return http.post<ApiResult<boolean>>('/favorite', data)
+}
+export function deleteFavorite(data: { contentId?: string; id?: string }) {
+  return http.delete<ApiResult<boolean>>('/favorite', { data })
 }
 
-export function getAdminNewsDetail(id: number) {
-  return http.get<ApiResult<NewsItem>>('/admin/news/' + id)
-}
 
-export function updateNews(id: number, data: Partial<NewsItem>) {
-  return http.put<ApiResult<NewsItem>>(`/admin/news/${id}`, data)
-}
-
-export function deleteNews(id: number) {
-  return http.delete<ApiResult<null>>(`/admin/news/${id}`)
-}
-
-export function createCategory(name: string) {
-  return http.post<ApiResult<Category>>('/admin/categories', { name })
-}
-
-export function updateCategory(id: number, name: string) {
-  return http.put<ApiResult<Category>>(`/admin/categories/${id}`, { name })
-}
-
-export function deleteCategory(id: number) {
-  return http.delete<ApiResult<null>>(`/admin/categories/${id}`)
-}

@@ -5,8 +5,8 @@ import com.news.entity.Category;
 import com.news.entity.News;
 import com.news.entity.NewsStatus;
 import com.news.exception.ResourceNotFoundException;
+import com.news.repository.CategoryRepository;
 import com.news.repository.NewsRepository;
-import com.news.service.CategoryService;
 import com.news.service.NewsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,11 +28,11 @@ public class NewsServiceImpl implements NewsService {
     private static final Logger log = LoggerFactory.getLogger(NewsServiceImpl.class);
 
     private final NewsRepository newsRepository;
-    private final CategoryService categoryService;
+    private final CategoryRepository categoryRepository;
 
-    public NewsServiceImpl(NewsRepository newsRepository, CategoryService categoryService) {
+    public NewsServiceImpl(NewsRepository newsRepository, CategoryRepository categoryRepository) {
         this.newsRepository = newsRepository;
-        this.categoryService = categoryService;
+        this.categoryRepository = categoryRepository;
     }
 
     @Override
@@ -129,7 +129,7 @@ public class NewsServiceImpl implements NewsService {
                 .map(News::getCategoryId)
                 .collect(Collectors.toSet());
         if (categoryIds.isEmpty()) return Map.of();
-        return categoryService.findAllById(categoryIds).stream()
+        return categoryRepository.findAllById(categoryIds).stream()
                 .collect(Collectors.toMap(Category::getId, Category::getName));
     }
 
@@ -144,7 +144,7 @@ public class NewsServiceImpl implements NewsService {
         NewsDTO dto = new NewsDTO();
         copyFields(news, dto);
         try {
-            Category category = categoryService.findById(news.getCategoryId());
+            Category category = categoryRepository.findById(news.getCategoryId()).orElse(null);
             dto.setCategoryName(category.getName());
         } catch (Exception e) {
             log.warn("Failed to fetch category name for categoryId={}", news.getCategoryId(), e);

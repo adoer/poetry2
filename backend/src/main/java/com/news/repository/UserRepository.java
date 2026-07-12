@@ -15,7 +15,7 @@ import java.util.Optional;
  */
 // 继承 JpaRepository<User, Long>：实体类型为 User，主键类型为 Long
 // Spring Data JPA 会自动实现该接口，无需编写实现类
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, String> {
 
     /**
      * 根据用户名查询用户信息

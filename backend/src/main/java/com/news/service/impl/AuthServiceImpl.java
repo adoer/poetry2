@@ -2,64 +2,103 @@ package com.news.service.impl;
 
 import com.news.dto.LoginRequest;
 import com.news.dto.LoginResponse;
+import com.news.dto.SignupRequest;
 import com.news.entity.User;
 import com.news.exception.BusinessException;
 import com.news.repository.UserRepository;
 import com.news.service.AuthService;
+import com.news.util.CaptchaCache;
 import com.news.util.JwtUtil;
 import com.news.util.TokenBlacklist;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @Service
 public class AuthServiceImpl implements AuthService {
-
-    private static final int MAX_ATTEMPTS = 5;
-    private static final long LOCK_DURATION_MINUTES = 15;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final TokenBlacklist tokenBlacklist;
-
-    private final ConcurrentHashMap<String, LoginAttempt> loginAttempts = new ConcurrentHashMap<>();
+    private final CaptchaCache captchaCache;
 
     public AuthServiceImpl(UserRepository userRepository,
-                           PasswordEncoder passwordEncoder,
-                           JwtUtil jwtUtil,
-                           TokenBlacklist tokenBlacklist) {
+                            PasswordEncoder passwordEncoder,
+                            JwtUtil jwtUtil,
+                            TokenBlacklist tokenBlacklist,
+                            CaptchaCache captchaCache) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.tokenBlacklist = tokenBlacklist;
+        this.captchaCache = captchaCache;
     }
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        String key = request.getUsername();
+        validateCaptcha(request.getVerificationCode());
 
-        LoginAttempt attempt = loginAttempts.get(key);
-        if (attempt != null && attempt.isLocked()) {
-            throw new BusinessException("账户已被锁定，请15分钟后再试");
-        }
-
-        User user = userRepository.findByUsername(key)
-                .orElseThrow(() -> {
-                    recordFailedAttempt(key);
-                    return new BusinessException("用户名或密码错误");
-                });
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new BusinessException("账号不存在，请注册。"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            recordFailedAttempt(key);
-            throw new BusinessException("用户名或密码错误");
+            throw new BusinessException("密码不正确");
         }
 
-        loginAttempts.remove(key);
-        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole().name());
-        return new LoginResponse(token, user.getUsername(), user.getRole().name());
+        captchaCache.remove(request.getVerificationCode());
+
+        boolean bindwx = user.getOpenid() != null && !user.getOpenid().isEmpty();
+        boolean bindtel = user.getPhone() != null && user.getPhone().length() == 11;
+
+        String role = "admin".equals(user.getUsername()) ? "ADMIN" : "USER";
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), role);
+        return new LoginResponse(token, user.getUsername(), bindwx, bindtel);
+    }
+
+    @Override
+    @Transactional
+    public LoginResponse signup(SignupRequest request) {
+        validateCaptcha(request.getVerificationCode());
+
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new BusinessException("用户名已存在");
+        }
+
+        captchaCache.remove(request.getVerificationCode());
+
+        String userId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+
+        User user = new User();
+        user.setId(userId);
+        user.setUsername(request.getUsername());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setNickname(request.getUsername());
+        user.setLastLoginId(UUID.randomUUID().toString().replace("-", "").substring(0, 16));
+        user.setVipLevel("0");
+        user.setCreateTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        userRepository.save(user);
+
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), "USER");
+        return new LoginResponse(token, user.getUsername(), false, false);
+    }
+
+    @Override
+    @Transactional
+    public void modifyPassword(String username, String passwordOld, String passwordNew) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BusinessException("找不到此账号"));
+
+        if (!passwordEncoder.matches(passwordOld, user.getPassword())) {
+            throw new BusinessException("原密码不对");
+        }
+
+        user.setPassword(passwordEncoder.encode(passwordNew));
+        userRepository.save(user);
     }
 
     @Override
@@ -67,31 +106,9 @@ public class AuthServiceImpl implements AuthService {
         tokenBlacklist.add(token);
     }
 
-    private void recordFailedAttempt(String key) {
-        loginAttempts.compute(key, (k, v) -> {
-            if (v == null || v.isExpired()) {
-                return new LoginAttempt(1, System.currentTimeMillis());
-            }
-            v.count++;
-            return v;
-        });
-    }
-
-    private static class LoginAttempt {
-        int count;
-        long firstAttemptTime;
-
-        LoginAttempt(int count, long firstAttemptTime) {
-            this.count = count;
-            this.firstAttemptTime = firstAttemptTime;
-        }
-
-        boolean isLocked() {
-            return count >= MAX_ATTEMPTS && !isExpired();
-        }
-
-        boolean isExpired() {
-            return System.currentTimeMillis() - firstAttemptTime > TimeUnit.MINUTES.toMillis(LOCK_DURATION_MINUTES);
+    private void validateCaptcha(String code) {
+        if (code == null || captchaCache.get(code) == null) {
+            throw new BusinessException("验证码不对或过期请重试");
         }
     }
 }

@@ -1,76 +1,59 @@
 package com.news.service.impl;
 
-import com.news.entity.Category;
-import com.news.exception.BusinessException;
-import com.news.exception.ResourceNotFoundException;
-import com.news.repository.CategoryRepository;
-import com.news.repository.NewsRepository;
+import com.news.entity.Poesy;
+import com.news.repository.PoesyRepository;
 import com.news.service.CategoryService;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
 
-    private final CategoryRepository categoryRepository;
-    private final NewsRepository newsRepository;
+    private static final List<String> FIXED_CATEGORIES = List.of(
+            "唐诗三百首", "古诗三百首", "宋词三百首", "小学古诗", "初中古诗",
+            "高中古诗", "小学文言文", "初中文言文", "高中文言文", "宋词精选",
+            "古诗十九首", "诗经", "乐府", "楚辞", "春天", "夏天", "秋天", "冬天"
+    );
 
-    public CategoryServiceImpl(CategoryRepository categoryRepository, NewsRepository newsRepository) {
-        this.categoryRepository = categoryRepository;
-        this.newsRepository = newsRepository;
+    private final PoesyRepository poesyRepository;
+
+    public CategoryServiceImpl(PoesyRepository poesyRepository) {
+        this.poesyRepository = poesyRepository;
     }
 
     @Override
-    @Cacheable(value = "categories", unless = "#result.isEmpty()")
-    public List<Category> findAll() {
-        return categoryRepository.findAll();
-    }
-
-    @Override
-    public List<Category> findAllById(Collection<Long> ids) {
-        return categoryRepository.findAllById(ids);
-    }
-
-    @Override
-    @Cacheable(value = "categories", key = "#id")
-    public Category findById(Long id) {
-        return categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("分类不存在"));
-    }
-
-    @Override
-    @CacheEvict(value = "categories", allEntries = true)
-    public Category create(String name) {
-        if (categoryRepository.existsByName(name)) {
-            throw new BusinessException("分类名称已存在");
+    public List<String> getCategories() {
+        List<Poesy> poesys = poesyRepository.findAll();
+        Set<String> allTypes = new LinkedHashSet<>(FIXED_CATEGORIES);
+        for (Poesy p : poesys) {
+            if (p.getType() != null && !p.getType().isEmpty()) {
+                try {
+                    String[] types = p.getType().replace("[", "").replace("]", "")
+                            .replace("\"", "").split(",");
+                    for (String t : types) {
+                        String trimmed = t.trim();
+                        if (!trimmed.isEmpty()) {
+                            allTypes.add(trimmed);
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+            }
         }
-        Category category = new Category();
-        category.setName(name);
-        return categoryRepository.save(category);
+        return new ArrayList<>(allTypes);
     }
 
     @Override
-    @CacheEvict(value = "categories", allEntries = true)
-    public Category update(Long id, String name) {
-        Category category = findById(id);
-        if (!category.getName().equals(name) && categoryRepository.existsByName(name)) {
-            throw new BusinessException("分类名称已存在");
-        }
-        category.setName(name);
-        return categoryRepository.save(category);
-    }
-
-    @Override
-    @CacheEvict(value = "categories", allEntries = true)
-    public void delete(Long id) {
-        Category category = findById(id);
-        if (newsRepository.countByCategoryId(id) > 0) {
-            throw new BusinessException("该分类下存在新闻，无法删除");
-        }
-        categoryRepository.delete(category);
+    public List<Map<String, Object>> getCategoryDetail(String category) {
+        List<Poesy> poesys = poesyRepository.findByTypeContaining("\"" + category + "\"");
+        return poesys.stream().map(p -> {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("id", p.getId());
+            map.put("writer", p.getWriter());
+            map.put("title", p.getTitle());
+            return map;
+        }).collect(Collectors.toList());
     }
 }

@@ -1,13 +1,14 @@
 package com.news.config;
 
 import com.news.entity.User;
-import com.news.entity.UserRole;
 import com.news.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Component
 public class AdminInitializer implements CommandLineRunner {
@@ -36,9 +37,10 @@ public class AdminInitializer implements CommandLineRunner {
         }
 
         User admin = new User();
+        admin.setId(UUID.randomUUID().toString().replace("-", "").substring(0, 16));
         admin.setUsername("admin");
         admin.setPassword(passwordEncoder.encode(password));
-        admin.setRole(UserRole.ADMIN);
+        admin.setVipLevel("admin");
         userRepository.save(admin);
 
         log.info("Default admin user created successfully");

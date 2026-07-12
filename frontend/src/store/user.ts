@@ -3,7 +3,9 @@ import { ref, computed } from 'vue'
 
 interface UserInfo {
   username: string
-  role: string
+  role?: string
+  bindwx?: boolean
+  bindtel?: boolean
 }
 
 export const useUserStore = defineStore('user', () => {
@@ -11,7 +13,7 @@ export const useUserStore = defineStore('user', () => {
   let savedUser: UserInfo | null = null
   try {
     const parsed = JSON.parse(localStorage.getItem('user') || 'null')
-    if (parsed && typeof parsed === 'object' && 'username' in parsed && 'role' in parsed) {
+    if (parsed && typeof parsed === 'object' && 'username' in parsed) {
       savedUser = parsed as UserInfo
     }
   } catch {}
@@ -21,9 +23,9 @@ export const useUserStore = defineStore('user', () => {
   const isAdmin = computed(() => userInfo.value?.role === 'ADMIN')
   const username = computed(() => userInfo.value?.username || '')
 
-  function setLogin(data: { token: string; username: string; role: string }) {
+  function setLogin(data: { token: string; username: string; role?: string; bindwx?: boolean; bindtel?: boolean }) {
     token.value = data.token
-    const info = { username: data.username, role: data.role }
+    const info: UserInfo = { username: data.username, role: data.role, bindwx: data.bindwx, bindtel: data.bindtel }
     userInfo.value = info
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(info))

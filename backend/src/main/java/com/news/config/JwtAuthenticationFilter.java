@@ -38,12 +38,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(token) && !tokenBlacklist.contains(token)) {
             try {
                 Claims claims = jwtUtil.parseToken(token);
-                Long userId = Long.parseLong(claims.getSubject());
-                String role = claims.get("role", String.class);
+                String username = claims.get("username", String.class);
 
+                String role = claims.get("role", String.class);
+                if (role == null) role = "USER";
+                if ("admin".equals(username)) role = "ADMIN";
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                userId, null,
+                                username, null,
                                 List.of(new SimpleGrantedAuthority("ROLE_" + role))
                         );
                 SecurityContextHolder.getContext().setAuthentication(authentication);

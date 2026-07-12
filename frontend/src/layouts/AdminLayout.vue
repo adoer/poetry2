@@ -30,8 +30,6 @@ async function handleLogout() {
           router
         >
           <el-menu-item index="/admin">概览</el-menu-item>
-          <el-menu-item index="/admin/news">新闻管理</el-menu-item>
-          <el-menu-item index="/admin/categories">分类管理</el-menu-item>
         </el-menu>
       </el-aside>
       <el-container>

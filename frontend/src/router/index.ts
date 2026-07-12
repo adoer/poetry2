@@ -14,25 +14,22 @@ function safeJsonParse<T>(str: string | null, fallback: T): T {
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    name: 'Home',
     component: () => import('../layouts/PublicLayout.vue'),
     children: [
-      {
-        path: '',
-        name: 'NewsList',
-        component: () => import('../views/public/NewsList.vue'),
-      },
-      {
-        path: 'news/:id',
-        name: 'NewsDetail',
-        component: () => import('../views/public/NewsDetail.vue'),
-      },
+      { path: '', name: 'Home', component: () => import('../views/public/Home.vue') },
+      { path: 'poesy', name: 'PoesyList', component: () => import('../views/public/PoesyList.vue') },
+      { path: 'poesy/:id', name: 'PoesyDetail', component: () => import('../views/public/PoesyDetail.vue') },
+      { path: 'authors', name: 'AuthorList', component: () => import('../views/public/AuthorList.vue') },
+      { path: 'authors/:id', name: 'AuthorDetail', component: () => import('../views/public/AuthorDetail.vue') },
+      { path: 'quotes', name: 'QuotesList', component: () => import('../views/public/QuotesList.vue') },
+      { path: 'category/:name', name: 'CategoryDetail', component: () => import('../views/public/CategoryDetail.vue') },
+      { path: 'profile', name: 'Profile', component: () => import('../views/user/Profile.vue'), meta: { requiresAuth: true } },
+      { path: 'favorites', name: 'Favorites', component: () => import('../views/user/Favorites.vue'), meta: { requiresAuth: true } },
+      { path: 'login', name: 'Login', component: () => import('../views/auth/Login.vue') },
+      { path: 'signup', name: 'Signup', component: () => import('../views/auth/Signup.vue') },
+      { path: 'forgot', name: 'ForgotPassword', component: () => import('../views/auth/ForgotPassword.vue') },
+      { path: 'agreement', name: 'Agreement', component: () => import('../views/public/Agreement.vue') },
     ],
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: () => import('../views/auth/Login.vue'),
   },
   {
     path: '/admin',
@@ -40,31 +37,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../layouts/AdminLayout.vue'),
     meta: { requiresAuth: true, role: 'ADMIN' },
     children: [
-      {
-        path: '',
-        name: 'AdminDashboard',
-        component: () => import('../views/admin/Dashboard.vue'),
-      },
-      {
-        path: 'news',
-        name: 'AdminNews',
-        component: () => import('../views/admin/NewsList.vue'),
-      },
-      {
-        path: 'news/create',
-        name: 'AdminNewsCreate',
-        component: () => import('../views/admin/NewsForm.vue'),
-      },
-      {
-        path: 'news/:id/edit',
-        name: 'AdminNewsEdit',
-        component: () => import('../views/admin/NewsForm.vue'),
-      },
-      {
-        path: 'categories',
-        name: 'AdminCategories',
-        component: () => import('../views/admin/CategoryList.vue'),
-      },
+      { path: '', name: 'AdminDashboard', component: () => import('../views/admin/Dashboard.vue') },
     ],
   },
   {
@@ -88,7 +61,7 @@ router.beforeEach((to, _from, next) => {
   if (to.meta.requiresAuth && !token) {
     next({ name: 'Login', query: { redirect: to.fullPath } })
   } else if (to.meta.role && user.role !== to.meta.role) {
-    next({ name: 'NewsList' })
+    next({ name: 'Home' })
   } else {
     next()
   }

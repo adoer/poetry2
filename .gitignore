@@ -35,3 +35,6 @@ certbot/
 *.sw?
 /nul
 /frontend/nul
+
+
+/cankao
