@@ -15,7 +15,7 @@ async function fetchData() {
   loading.value = true
   imgErrors.value = new Set()
   try {
-    const res = await getAuthors({ page: pageNum.value - 1 })
+    const res = await getAuthors({ page: pageNum.value })
     authors.value = res.data.data.content
   } catch (e) { console.error('Failed to load authors', e); authors.value = [] }
   finally { loading.value = false }

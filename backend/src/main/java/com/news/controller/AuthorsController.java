@@ -28,4 +28,21 @@ public class AuthorsController {
         }
         return Result.success(authorsService.getAuthorsList(pageNum));
     }
+
+    @GetMapping("/list")
+    public Result<?> getAuthorsList(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keyword) {
+        return Result.success(authorsService.getAuthorsListPage(page, size, keyword));
+    }
+
+    @GetMapping("/{id}")
+    public Result<?> getAuthorById(@PathVariable Integer id) {
+        Map<String, Object> data = authorsService.getAuthorById(id);
+        if (data == null) {
+            return Result.error("作者不存在");
+        }
+        return Result.success(data);
+    }
 }

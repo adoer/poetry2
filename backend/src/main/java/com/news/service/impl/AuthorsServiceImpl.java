@@ -52,6 +52,33 @@ public class AuthorsServiceImpl implements AuthorsService {
     }
 
     @Override
+    public Map<String, Object> getAuthorsListPage(int page, int size, String keyword) {
+        if (page < 1) page = 1;
+        org.springframework.data.domain.Page<Authors> pageResult;
+        if (keyword != null && !keyword.isBlank()) {
+            pageResult = authorsRepository.findByNameContaining(keyword, PageRequest.of(page - 1, size));
+        } else {
+            pageResult = authorsRepository.findAll(PageRequest.of(page - 1, size));
+        }
+
+        List<Map<String, Object>> content = pageResult.getContent().stream().map(a -> {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("id", a.getId());
+            map.put("name", a.getName());
+            map.put("simpleIntro", a.getSimpleIntro());
+            map.put("headImageUrl", a.getHeadImageUrl());
+            map.put("dynasty", a.getDynasty());
+            return map;
+        }).collect(Collectors.toList());
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("content", content);
+        result.put("totalPages", pageResult.getTotalPages());
+        result.put("totalElements", pageResult.getTotalElements());
+        return result;
+    }
+
+    @Override
     public List<Map<String, Object>> getWriters() {
         return authorsRepository.findAll().stream()
                 .limit(60)

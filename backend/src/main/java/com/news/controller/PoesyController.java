@@ -36,4 +36,28 @@ public class PoesyController {
         result.put("totalPages", poesyService.getTotalPages());
         return Result.success(result);
     }
+
+    @GetMapping("/list")
+    public Result<?> getPoesyList(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "all") String type,
+            @RequestParam(required = false) String writer,
+            @RequestParam(required = false) String keyword) {
+        if (keyword != null && ("all".equals(keyword) || "tuijian".equals(keyword))) {
+            type = keyword;
+            keyword = null;
+        }
+        boolean recommended = "tuijian".equals(type);
+        return Result.success(poesyService.getPoesyListPage(page, size, recommended, keyword, writer));
+    }
+
+    @GetMapping("/{id}")
+    public Result<?> getPoesyById(@PathVariable Integer id) {
+        Map<String, Object> data = poesyService.getPoesyById(id);
+        if (data == null) {
+            return Result.error("诗词不存在");
+        }
+        return Result.success(data);
+    }
 }

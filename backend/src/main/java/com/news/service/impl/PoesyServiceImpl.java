@@ -55,6 +55,42 @@ public class PoesyServiceImpl implements PoesyService {
         return MAX_PAGE;
     }
 
+    @Override
+    public Map<String, Object> getPoesyListPage(int page, int size, boolean recommended) {
+        return getPoesyListPage(page, size, recommended, null, null);
+    }
+
+    @Override
+    public Map<String, Object> getPoesyListPage(int page, int size, boolean recommended, String keyword, String writer) {
+        if (page < 1) page = 1;
+        int effectivePage;
+        if (recommended) {
+            long seed = LocalDate.now().toEpochDay();
+            Random random = new Random(seed);
+            long totalDB = poesyRepository.count();
+            int maxPageDB = Math.max(1, (int) Math.ceil((double) totalDB / size));
+            int randomOffset = random.nextInt(Math.min(maxPageDB, 10));
+            effectivePage = Math.min(page + randomOffset - 1, maxPageDB - 1);
+        } else {
+            effectivePage = page - 1;
+        }
+
+        org.springframework.data.domain.Page<Poesy> pageResult;
+        if (writer != null && !writer.isBlank()) {
+            pageResult = poesyRepository.findByWriterContaining(writer, PageRequest.of(effectivePage, size));
+        } else if (keyword != null && !keyword.isBlank() && !"all".equals(keyword) && !"tuijian".equals(keyword)) {
+            pageResult = poesyRepository.findByTitleContainingOrContentContaining(keyword, PageRequest.of(effectivePage, size));
+        } else {
+            pageResult = poesyRepository.findAll(PageRequest.of(effectivePage, size));
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("content", pageResult.getContent().stream().map(this::toMap).collect(Collectors.toList()));
+        result.put("totalPages", pageResult.getTotalPages());
+        result.put("totalElements", pageResult.getTotalElements());
+        return result;
+    }
+
     private Map<String, Object> toMap(Poesy p) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("id", p.getId());

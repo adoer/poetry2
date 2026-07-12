@@ -18,4 +18,10 @@ public interface PoesyRepository extends JpaRepository<Poesy, Integer> {
     @Query("SELECT p FROM Poesy p WHERE p.title LIKE %:keyword%")
     List<Poesy> findByTitleContaining(@Param("keyword") String keyword, org.springframework.data.domain.Pageable pageable);
 
+    org.springframework.data.domain.Page<Poesy> findByWriterContaining(String writer, org.springframework.data.domain.Pageable pageable);
+
+    @Query(value = "SELECT p FROM Poesy p WHERE p.title LIKE %:keyword% OR p.content LIKE %:keyword%",
+           countQuery = "SELECT count(p) FROM Poesy p WHERE p.title LIKE %:keyword% OR p.content LIKE %:keyword%")
+    org.springframework.data.domain.Page<Poesy> findByTitleContainingOrContentContaining(@Param("keyword") String keyword, org.springframework.data.domain.Pageable pageable);
+
 }
