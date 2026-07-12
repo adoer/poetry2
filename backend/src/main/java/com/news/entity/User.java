@@ -31,7 +31,7 @@ public class User {
     @Column(length = 300)
     private String password;
 
-    @Column(length = 20)
+    @Column(name = "lastloginti", length = 20)
     private String lastlogintime;
 
     @Column(name = "lastLoginId", length = 20)

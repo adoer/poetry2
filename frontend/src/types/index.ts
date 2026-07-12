@@ -84,19 +84,6 @@ export interface SearchResult {
   Poesy: { id: number; content: string; title: string; writer: string }[]
 }
 
-export interface NewsItem {
-  id: number
-  title: string
-  content: string
-  summary: string
-  coverImage: string
-  categoryId: number
-  categoryName: string
-  status: 'DRAFT' | 'PUBLISHED'
-  createdAt: string
-  updatedAt: string
-}
-
 export interface ApiResult<T> {
   code: number
   message: string

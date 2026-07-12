@@ -21,7 +21,7 @@ async function handleLogout() {
   <div class="admin-layout">
     <el-container style="height: 100vh">
       <el-aside width="220px" style="background: #304156">
-        <div class="admin-logo">新闻管理后台</div>
+        <div class="admin-logo">管理后台</div>
         <el-menu
           :default-active="router.currentRoute.value.path"
           background-color="#304156"

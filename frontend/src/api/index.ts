@@ -3,7 +3,7 @@ import axiosRetry from 'axios-retry'
 import type {
   ApiResult, LoginRequest, LoginResponse, SignupRequest,
   PoesyItem, AuthorItem, QuotesItem, FavoriteItem,
-  RecommendItem, SearchResult, NewsItem
+  RecommendItem, SearchResult
 } from '../types'
 
 let routerInstance: ReturnType<typeof import('vue-router').createRouter> | null = null
@@ -105,38 +105,6 @@ export function getCategories() {
 
 export function getCategoryDetail(category: string) {
   return http.get<ApiResult<{ id: number; writer: string; title: string }[]>>('/category/detail', { params: { category } })
-}
-
-// --- News (public) ---
-
-export function getNewsList(params: { categoryId?: number; keyword?: string; page?: number; size?: number }) {
-  return http.get<ApiResult<{ content: NewsItem[]; totalPages: number; totalElements: number }>>('/news', { params })
-}
-
-export function getNewsDetail(id: number) {
-  return http.get<ApiResult<NewsItem>>(`/news/${id}`)
-}
-
-// --- News (admin) ---
-
-export function getAdminNewsList(params: { keyword?: string; page?: number; size?: number }) {
-  return http.get<ApiResult<{ content: NewsItem[]; totalPages: number; totalElements: number }>>('/admin/news', { params })
-}
-
-export function getAdminNewsDetail(id: number) {
-  return http.get<ApiResult<NewsItem>>(`/admin/news/${id}`)
-}
-
-export function createNews(data: { title: string; content: string; summary: string; coverImage: string; categoryId: number; status?: string }) {
-  return http.post<ApiResult<NewsItem>>('/admin/news', data)
-}
-
-export function updateNews(id: number, data: { title: string; content: string; summary: string; coverImage: string; categoryId: number; status?: string }) {
-  return http.put<ApiResult<NewsItem>>(`/admin/news/${id}`, data)
-}
-
-export function deleteNews(id: number) {
-  return http.delete<ApiResult<void>>(`/admin/news/${id}`)
 }
 
 // --- Writer (famous writers from poesy) ---
