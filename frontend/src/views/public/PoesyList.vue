@@ -119,13 +119,13 @@ onMounted(fetchData)
             </div>
             <div class="poem-text flex justify-center" :class="{ 'expanded': expandedIndex === index }">
               <div class="inline-block text-center"
-                :class="expandedIndex !== index && item.content.length > 150 ? 'line-clamp-4' : ''">
+                :class="expandedIndex !== index && (item.content?.length ?? 0) > 150 ? 'line-clamp-4' : ''">
                 <p class="text-ink/80 leading-loose" style="white-space: pre-wrap;">
                   {{ item.content }}
                 </p>
               </div>
             </div>
-            <div v-if="item.content.length > 150" class="mt-3 text-center">
+            <div v-if="(item.content?.length ?? 0) > 150" class="mt-3 text-center">
               <span @click="expandedIndex = expandedIndex === index ? null : index" class="expand-btn">
                 {{ expandedIndex === index ? '▲ 收起' : '▼ 阅读全文' }}
               </span>
