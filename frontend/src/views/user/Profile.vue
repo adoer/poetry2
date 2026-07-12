@@ -80,14 +80,14 @@ async function fetchFavorites() {
   favLoading.value = true
   try {
     const res = await getFavorites()
-    favList.value = res.data.data || []
+    favList.value = res.data.data.content || []
   } catch {}
   finally { favLoading.value = false }
 }
 
 async function cancelFavorite(item: FavoriteItem) {
   try {
-    const res = await deleteFavorite({ contentId: String(item.contentId) })
+    const res = await deleteFavorite(item.id)
     if (res.data.code === 200) {
       ElMessage.success('已取消收藏')
       fetchFavorites()

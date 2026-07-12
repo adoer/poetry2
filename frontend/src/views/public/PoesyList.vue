@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '../../store/user'
-import { getPoesy, addFavorite, deleteFavorite } from '../../api'
+import { getPoesyList, addFavorite, deleteFavorite } from '../../api'
 import CategoryWriter from '../../components/common/CategoryWriter.vue'
 import type { PoesyItem } from '../../types'
 
@@ -22,13 +22,14 @@ async function fetchData() {
   loading.value = true
   try {
     const keyword = (route.query.q as string) || mode.value
-    const res = await getPoesy({ keyword, pageNum: pageNum.value })
+    const res = await getPoesyList({ keyword, page: pageNum.value })
     const data = res.data.data
-    if (data && typeof data === 'object' && 'list' in data) {
-      const list = data.list as PoesyItem[]
+    if (data && typeof data === 'object') {
+      const list = (data as any).list || data.content || []
       poemList.value = list
       list.forEach((item: any) => { likedMap.value[item.id] = item.like || false })
-      if ('total' in data) total.value = data.total as number
+      if ('totalPages' in data) total.value = data.totalPages as number
+      else if ('total' in data) total.value = (data as any).total as number
     }
   } catch (e) { console.error('Failed to load poems', e); poemList.value = [] }
   finally { loading.value = false }
@@ -59,13 +60,7 @@ async function likeClick(item: PoesyItem) {
   const isLiked = likedMap.value[item.id]
   try {
     if (!isLiked) {
-      const res = await addFavorite({
-        id: String(item.id),
-        type: 'Poesy',
-        title: item.title,
-        content: item.content,
-        writer: item.writer,
-      })
+      const res = await addFavorite({ targetId: item.id, type: 'Poesy' })
       if (res.data.code === 200) {
         ElMessage.success('收藏成功')
         likedMap.value[item.id] = true
@@ -74,7 +69,7 @@ async function likeClick(item: PoesyItem) {
         likedMap.value[item.id] = true
       }
     } else {
-      const res = await deleteFavorite({ contentId: String(item.id) })
+      const res = await deleteFavorite(item.id)
       if (res.data.code === 200) {
         ElMessage.success('已取消收藏')
         likedMap.value[item.id] = false

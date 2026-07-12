@@ -1,11 +1,9 @@
 package com.news.service.impl;
 
 import com.news.dto.NewsDTO;
-import com.news.entity.Category;
 import com.news.entity.News;
 import com.news.entity.NewsStatus;
 import com.news.exception.ResourceNotFoundException;
-import com.news.repository.CategoryRepository;
 import com.news.repository.NewsRepository;
 import com.news.service.NewsService;
 import org.slf4j.Logger;
@@ -17,22 +15,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 @Service
 public class NewsServiceImpl implements NewsService {
 
     private static final Logger log = LoggerFactory.getLogger(NewsServiceImpl.class);
 
     private final NewsRepository newsRepository;
-    private final CategoryRepository categoryRepository;
 
-    public NewsServiceImpl(NewsRepository newsRepository, CategoryRepository categoryRepository) {
+    public NewsServiceImpl(NewsRepository newsRepository) {
         this.newsRepository = newsRepository;
-        this.categoryRepository = categoryRepository;
     }
 
     @Override
@@ -52,8 +43,7 @@ public class NewsServiceImpl implements NewsService {
             newsPage = newsRepository.findByStatus(NewsStatus.PUBLISHED, pageable);
         }
 
-        Map<Long, String> categoryNames = buildCategoryNameMap(newsPage.getContent());
-        return newsPage.map(news -> toDTO(news, categoryNames));
+        return newsPage.map(this::toDTO);
     }
 
     @Override
@@ -79,8 +69,7 @@ public class NewsServiceImpl implements NewsService {
             newsPage = newsRepository.findAll(pageable);
         }
 
-        Map<Long, String> categoryNames = buildCategoryNameMap(newsPage.getContent());
-        return newsPage.map(news -> toDTO(news, categoryNames));
+        return newsPage.map(this::toDTO);
     }
 
     @Override
@@ -124,35 +113,8 @@ public class NewsServiceImpl implements NewsService {
         newsRepository.deleteById(id);
     }
 
-    private Map<Long, String> buildCategoryNameMap(List<News> newsList) {
-        Set<Long> categoryIds = newsList.stream()
-                .map(News::getCategoryId)
-                .collect(Collectors.toSet());
-        if (categoryIds.isEmpty()) return Map.of();
-        return categoryRepository.findAllById(categoryIds).stream()
-                .collect(Collectors.toMap(Category::getId, Category::getName));
-    }
-
-    private NewsDTO toDTO(News news, Map<Long, String> categoryNames) {
-        NewsDTO dto = new NewsDTO();
-        copyFields(news, dto);
-        dto.setCategoryName(categoryNames.get(news.getCategoryId()));
-        return dto;
-    }
-
     private NewsDTO toDTO(News news) {
         NewsDTO dto = new NewsDTO();
-        copyFields(news, dto);
-        try {
-            Category category = categoryRepository.findById(news.getCategoryId()).orElse(null);
-            dto.setCategoryName(category.getName());
-        } catch (Exception e) {
-            log.warn("Failed to fetch category name for categoryId={}", news.getCategoryId(), e);
-        }
-        return dto;
-    }
-
-    private void copyFields(News news, NewsDTO dto) {
         dto.setId(news.getId());
         dto.setTitle(news.getTitle());
         dto.setContent(news.getContent());
@@ -162,5 +124,6 @@ public class NewsServiceImpl implements NewsService {
         dto.setStatus(news.getStatus());
         dto.setCreatedAt(news.getCreatedAt());
         dto.setUpdatedAt(news.getUpdatedAt());
+        return dto;
     }
 }

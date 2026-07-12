@@ -42,7 +42,6 @@ watch(() => route.params.id, () => {
     <div v-else class="detail-content">
       <h1 class="detail-title">{{ news.title }}</h1>
       <div class="detail-meta">
-        <span class="category-tag">{{ news.categoryName }}</span>
         <span>{{ news.createdAt }}</span>
       </div>
       <img v-if="news.coverImage" :src="news.coverImage" class="detail-cover" alt="cover" />

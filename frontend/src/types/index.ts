@@ -84,11 +84,6 @@ export interface SearchResult {
   Poesy: { id: number; content: string; title: string; writer: string }[]
 }
 
-export interface Category {
-  id: number
-  name: string
-}
-
 export interface NewsItem {
   id: number
   title: string

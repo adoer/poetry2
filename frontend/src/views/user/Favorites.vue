@@ -9,14 +9,14 @@ async function fetchData() {
   loading.value = true
   try {
     const res = await getFavorites()
-    favorites.value = res.data.data || []
+    favorites.value = res.data.data.content || []
   } catch (e) { console.error('Failed to load favorites', e); favorites.value = [] }
   finally { loading.value = false }
 }
 
 async function removeFav(item: FavoriteItem) {
   try {
-    await deleteFavorite({ id: String(item.id) })
+    await deleteFavorite(item.id)
     favorites.value = favorites.value.filter(f => f.id !== item.id)
   } catch (e) { console.error('Failed to remove favorite', e) }
 }

@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getAdminNewsDetail, createNews, updateNews, getCategories } from '../../api'
-import type { Category } from '../../types'
+import { getAdminNewsDetail, createNews, updateNews } from '../../api'
 
 const route = useRoute()
 const router = useRouter()
 const isEdit = computed(() => !!route.params.id)
 const loading = ref(false)
-const categories = ref<Category[]>([])
 
 const form = ref({
   title: '',
@@ -18,15 +16,6 @@ const form = ref({
   categoryId: undefined as number | undefined,
   status: 'DRAFT' as 'DRAFT' | 'PUBLISHED',
 })
-
-async function loadCategories() {
-  try {
-    const res = await getCategories()
-    categories.value = res.data.data
-  } catch (e) {
-    console.error('Failed to load categories', e)
-  }
-}
 
 async function loadNews() {
   const id = Number(route.params.id)
@@ -54,7 +43,6 @@ async function loadNews() {
 }
 
 onMounted(async () => {
-  await loadCategories()
   if (route.params.id) {
     await loadNews()
   }
@@ -78,10 +66,6 @@ async function handleSave() {
   }
   if (!form.value.content.trim()) {
     ElMessage.warning('请输入新闻内容')
-    return
-  }
-  if (!form.value.categoryId) {
-    ElMessage.warning('请选择新闻分类')
     return
   }
 
@@ -118,10 +102,8 @@ async function handleSave() {
       <el-form-item label="内容" required>
         <el-input v-model="form.content" type="textarea" :rows="12" placeholder="新闻正文内容" />
       </el-form-item>
-      <el-form-item label="分类" required>
-        <el-select v-model="form.categoryId" placeholder="选择分类" style="width: 100%">
-          <el-option v-for="cat in categories" :key="cat.id" :label="cat.name" :value="cat.id" />
-        </el-select>
+      <el-form-item label="分类">
+        <el-input v-model.number="form.categoryId" placeholder="分类 ID（可选）" type="number" />
       </el-form-item>
       <el-form-item label="封面图">
         <el-input v-model="form.coverImage" placeholder="封面图片 URL（可选）" />

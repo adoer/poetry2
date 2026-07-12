@@ -102,7 +102,7 @@ function searchFunc() {
 
 async function getSearchData() {
   try {
-    const res = await searchAll(searchVal.value)
+    const res = await searchAll({ keyword: searchVal.value })
     const data = res.data.data
 
     searchData.Authors = data.Authors || []

@@ -9,7 +9,6 @@ com\news\exception\BusinessException.class
 com\news\entity\Favorite.class
 com\news\service\AuthorsService.class
 com\news\entity\NewsStatus.class
-com\news\repository\CategoryRepository.class
 com\news\service\FavoriteService.class
 com\news\service\impl\FavoriteServiceImpl.class
 com\news\dto\ModifyPasswordRequest.class
@@ -22,7 +21,6 @@ com\news\service\CategoryService.class
 com\news\service\PoesyService.class
 com\news\repository\NewsRepository.class
 com\news\controller\PoesyController.class
-com\news\entity\Category.class
 com\news\repository\AuthorsRepository.class
 com\news\util\JwtUtil.class
 com\news\dto\LoginResponse.class
@@ -51,7 +49,6 @@ com\news\service\impl\QuotesServiceImpl.class
 com\news\service\NewsService.class
 com\news\util\CaptchaGenerator.class
 com\news\repository\PoesyRepository.class
-com\news\dto\CategoryRequest.class
 com\news\exception\GlobalExceptionHandler.class
 com\news\controller\CategoryController.class
 com\news\controller\FavoriteController.class

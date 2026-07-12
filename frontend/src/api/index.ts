@@ -3,7 +3,7 @@ import axiosRetry from 'axios-retry'
 import type {
   ApiResult, LoginRequest, LoginResponse, SignupRequest,
   PoesyItem, AuthorItem, QuotesItem, FavoriteItem,
-  RecommendItem, SearchResult, Category, NewsItem
+  RecommendItem, SearchResult, NewsItem
 } from '../types'
 
 let routerInstance: ReturnType<typeof import('vue-router').createRouter> | null = null
@@ -18,35 +18,26 @@ const http = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-axiosRetry(http, { retries: 3, retryDelay: axiosRetry.exponentialDelay })
-
-http.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
+axiosRetry(http, {
+  retries: 0,
+  shouldResetTimeout: true,
 })
 
 http.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       if (routerInstance) {
-        routerInstance.push('/login')
-      } else {
-        window.location.href = '/login'
+        routerInstance.push({ name: 'Login' })
       }
     }
     return Promise.reject(error)
-  },
+  }
 )
 
-export function getCaptcha() {
-  return http.get<ApiResult<{ image: string }>>('/captcha')
-}
+// --- Auth ---
 
 export function login(data: LoginRequest) {
   return http.post<ApiResult<LoginResponse>>('/login', data)
@@ -57,57 +48,69 @@ export function signup(data: SignupRequest) {
 }
 
 export function logout() {
-  return http.post<ApiResult<null>>('/logout')
+  return http.post<ApiResult<void>>('/logout')
 }
 
-export function modifyPassword(data: { passwordOld: string; passwordNew: string }) {
-  return http.put<ApiResult<null>>('/modifypassword', data)
+export function getCaptcha() {
+  return http.get<ApiResult<{ image: string }>>('/captcha')
 }
 
-export function getPoesy(params: { keyword?: string; pageNum?: number; id?: number }) {
-  return http.get<ApiResult<{ pageNum: number; list: PoesyItem[] } | PoesyItem>>('/poesy', { params })
+export function forgotPassword(data: { email: string; captcha: string }) {
+  return http.post<ApiResult<void>>('/forgot', data)
 }
 
-export function getAuthors(params: { id?: number; pageNum?: number }) {
-  return http.get<ApiResult<AuthorItem[] | AuthorItem>>('/authors', { params })
+// --- Poems (poesy) ---
+
+export function getPoesyList(params: { page?: number; size?: number; type?: string; writer?: string; keyword?: string }) {
+  return http.get<ApiResult<{ content: PoesyItem[]; totalPages: number; totalElements: number }>>('/poesy/list', { params })
 }
 
-export function getWriters() {
-  return http.get<ApiResult<{ name: string; id: number }[]>>('/writers')
+export function getPoesyDetail(id: number) {
+  return http.get<ApiResult<PoesyItem>>(`/poesy/${id}`)
 }
 
-export function getQuotes(params: { pageNum?: number }) {
-  return http.get<ApiResult<QuotesItem[]>>('/quotes', { params })
+// --- Authors ---
+
+export function getAuthors(params: { page?: number; size?: number; keyword?: string }) {
+  return http.get<ApiResult<{ content: AuthorItem[]; totalPages: number; totalElements: number }>>('/authors/list', { params })
+}
+
+export function getAuthorDetail(id: number) {
+  return http.get<ApiResult<AuthorItem>>(`/authors/${id}`)
+}
+
+// --- Quotes ---
+
+export function getQuotes(params: { page?: number; size?: number; keyword?: string }) {
+  return http.get<ApiResult<{ content: QuotesItem[]; totalPages: number; totalElements: number }>>('/quotes/list', { params })
+}
+
+// --- Search ---
+
+export function searchAll(params: { keyword: string; size?: number }) {
+  return http.get<ApiResult<SearchResult>>('/searchAll', { params })
+}
+
+// --- Recommend ---
+
+export function getRecommend() {
+  return http.get<ApiResult<RecommendItem[]>>('/recommend')
 }
 
 // --- Categories (poetry) ---
 
 export function getCategories() {
-  return http.get<ApiResult<Category[]>>('/category')
+  return http.get<ApiResult<string[]>>('/category')
 }
 
 export function getCategoryDetail(category: string) {
   return http.get<ApiResult<{ id: number; writer: string; title: string }[]>>('/category/detail', { params: { category } })
 }
 
-// --- Categories (news admin) ---
-
-export function createCategory(name: string) {
-  return http.post<ApiResult<Category>>('/admin/category', { name })
-}
-
-export function updateCategory(id: number, name: string) {
-  return http.put<ApiResult<Category>>(`/admin/category/${id}`, { name })
-}
-
-export function deleteCategory(id: number) {
-  return http.delete<ApiResult<void>>(`/admin/category/${id}`)
-}
-
 // --- News (public) ---
 
-export function getNews(params: { page: number; size: number; categoryId?: number; keyword?: string }) {
-  return http.get<ApiResult<{ content: NewsItem[]; totalElements: number }>>('/news', { params })
+export function getNewsList(params: { categoryId?: number; keyword?: string; page?: number; size?: number }) {
+  return http.get<ApiResult<{ content: NewsItem[]; totalPages: number; totalElements: number }>>('/news', { params })
 }
 
 export function getNewsDetail(id: number) {
@@ -116,8 +119,8 @@ export function getNewsDetail(id: number) {
 
 // --- News (admin) ---
 
-export function getAdminNews(params: { keyword?: string; page: number; size: number }) {
-  return http.get<ApiResult<{ content: NewsItem[]; totalElements: number }>>('/admin/news', { params })
+export function getAdminNewsList(params: { keyword?: string; page?: number; size?: number }) {
+  return http.get<ApiResult<{ content: NewsItem[]; totalPages: number; totalElements: number }>>('/admin/news', { params })
 }
 
 export function getAdminNewsDetail(id: number) {
@@ -136,24 +139,32 @@ export function deleteNews(id: number) {
   return http.delete<ApiResult<void>>(`/admin/news/${id}`)
 }
 
-// --- Search & Recommendations ---
+// --- Writer (famous writers from poesy) ---
 
-export function searchAll(keyword: string) {
-  return http.get<ApiResult<SearchResult>>('/searchAll', { params: { keyword } })
+export function getWriters() {
+  return http.get<ApiResult<string[]>>('/writers')
 }
 
-export function getRecommend() {
-  return http.get<ApiResult<RecommendItem[]>>('/recommend')
+// --- Favorites ---
+
+export function getFavorites(params?: { type?: string; page?: number; size?: number }) {
+  return http.get<ApiResult<{ content: FavoriteItem[]; totalPages: number; totalElements: number }>>('/favorites', { params })
 }
 
-export function getFavorites() {
-  return http.get<ApiResult<FavoriteItem[]>>('/favorite')
-}
-export function addFavorite(data: { id: string; type: string; title: string; content: string; writer: string }) {
-  return http.post<ApiResult<boolean>>('/favorite', data)
-}
-export function deleteFavorite(data: { contentId?: string; id?: string }) {
-  return http.delete<ApiResult<boolean>>('/favorite', { data })
+export function addFavorite(data: { targetId: number; type: string; [key: string]: any }) {
+  return http.post<ApiResult<void>>('/favorites', data)
 }
 
+export function deleteFavorite(id: number) {
+  return http.delete<ApiResult<void>>(`/favorites/${id}`)
+}
 
+// --- User Profile ---
+
+export function updateProfile(data: { nickname?: string; avatar?: string }) {
+  return http.put<ApiResult<void>>('/profile', data)
+}
+
+export function modifyPassword(data: { passwordOld: string; passwordNew: string }) {
+  return http.put<ApiResult<void>>('/profile/password', data)
+}

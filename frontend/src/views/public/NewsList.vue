@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getNews } from '../../api'
+import { getNewsList } from '../../api'
 import type { NewsItem } from '../../types'
 import { Loading } from '@element-plus/icons-vue'
 
@@ -22,7 +22,7 @@ async function fetchNews() {
     }
     if (route.query.categoryId) params.categoryId = Number(route.query.categoryId)
     if (route.query.keyword) params.keyword = route.query.keyword as string
-    const res = await getNews(params)
+    const res = await getNewsList(params)
     newsList.value = res.data.data.content
     total.value = res.data.data.totalElements
   } catch (e) {
@@ -64,7 +64,6 @@ onMounted(fetchNews)
           <h3 class="news-title">{{ item.title }}</h3>
           <p class="news-summary">{{ item.summary || (item.content || '').slice(0, 120) + '...' }}</p>
           <div class="news-meta">
-            <span class="category-tag">{{ item.categoryName }}</span>
             <span>{{ item.createdAt }}</span>
           </div>
         </div>

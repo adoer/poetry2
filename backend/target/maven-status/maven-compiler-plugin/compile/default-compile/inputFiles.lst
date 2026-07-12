@@ -13,7 +13,6 @@ H:\projects\poetry2\backend\src\main\java\com\news\controller\QuotesController.j
 H:\projects\poetry2\backend\src\main\java\com\news\controller\RecommendController.java
 H:\projects\poetry2\backend\src\main\java\com\news\controller\SearchController.java
 H:\projects\poetry2\backend\src\main\java\com\news\controller\WritersController.java
-H:\projects\poetry2\backend\src\main\java\com\news\dto\CategoryRequest.java
 H:\projects\poetry2\backend\src\main\java\com\news\dto\FavoriteRequest.java
 H:\projects\poetry2\backend\src\main\java\com\news\dto\LoginRequest.java
 H:\projects\poetry2\backend\src\main\java\com\news\dto\LoginResponse.java
@@ -22,7 +21,6 @@ H:\projects\poetry2\backend\src\main\java\com\news\dto\NewsDTO.java
 H:\projects\poetry2\backend\src\main\java\com\news\dto\Result.java
 H:\projects\poetry2\backend\src\main\java\com\news\dto\SignupRequest.java
 H:\projects\poetry2\backend\src\main\java\com\news\entity\Authors.java
-H:\projects\poetry2\backend\src\main\java\com\news\entity\Category.java
 H:\projects\poetry2\backend\src\main\java\com\news\entity\Favorite.java
 H:\projects\poetry2\backend\src\main\java\com\news\entity\News.java
 H:\projects\poetry2\backend\src\main\java\com\news\entity\NewsStatus.java
@@ -35,7 +33,6 @@ H:\projects\poetry2\backend\src\main\java\com\news\exception\GlobalExceptionHand
 H:\projects\poetry2\backend\src\main\java\com\news\exception\ResourceNotFoundException.java
 H:\projects\poetry2\backend\src\main\java\com\news\NewsApplication.java
 H:\projects\poetry2\backend\src\main\java\com\news\repository\AuthorsRepository.java
-H:\projects\poetry2\backend\src\main\java\com\news\repository\CategoryRepository.java
 H:\projects\poetry2\backend\src\main\java\com\news\repository\FavoriteRepository.java
 H:\projects\poetry2\backend\src\main\java\com\news\repository\NewsRepository.java
 H:\projects\poetry2\backend\src\main\java\com\news\repository\PoesyRepository.java

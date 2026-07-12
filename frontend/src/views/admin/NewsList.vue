@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getAdminNews, deleteNews } from '../../api'
+import { getAdminNewsList, deleteNews } from '../../api'
 import type { NewsItem } from '../../types'
 
 const router = useRouter()
@@ -17,7 +17,7 @@ async function fetchNews() {
   const id = ++fetchId
   loading.value = true
   try {
-    const res = await getAdminNews({
+    const res = await getAdminNewsList({
       keyword: keyword.value,
       page: currentPage.value - 1,
       size: pageSize,
@@ -69,7 +69,7 @@ onMounted(fetchNews)
     </div>
     <el-table :data="newsList" v-loading="loading" stripe style="width: 100%">
       <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
-      <el-table-column prop="categoryName" label="分类" width="120" />
+      <el-table-column prop="categoryId" label="分类 ID" width="100" />
       <el-table-column prop="status" label="状态" width="100">
         <template #default="{ row }">
           <el-tag :type="row.status === 'PUBLISHED' ? 'success' : 'info'">

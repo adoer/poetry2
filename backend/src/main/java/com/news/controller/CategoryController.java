@@ -4,6 +4,9 @@ import com.news.dto.Result;
 import com.news.service.CategoryService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/category")
 public class CategoryController {
@@ -15,12 +18,12 @@ public class CategoryController {
     }
 
     @GetMapping
-    public Result<?> getCategories() {
+    public Result<List<String>> getCategories() {
         return Result.success(categoryService.getCategories());
     }
 
     @GetMapping("/detail")
-    public Result<?> getCategoryDetail(@RequestParam String category) {
+    public Result<List<Map<String, Object>>> getCategoryDetail(@RequestParam String category) {
         return Result.success(categoryService.getCategoryDetail(category));
     }
 }

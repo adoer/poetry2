@@ -35,7 +35,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/writers/**").permitAll()
                 .requestMatchers("/api/quotes/**").permitAll()
                 .requestMatchers("/api/category/**").permitAll()
-                .requestMatchers("/api/categoryDetail/**").permitAll()
                 .requestMatchers("/api/searchAll/**").permitAll()
                 .requestMatchers("/api/recommend/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

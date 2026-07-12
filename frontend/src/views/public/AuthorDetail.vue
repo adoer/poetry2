@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getAuthors } from '../../api'
+import { getAuthorDetail } from '../../api'
 import type { AuthorItem } from '../../types'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import CategoryWriter from '../../components/common/CategoryWriter.vue'
@@ -16,8 +16,8 @@ async function fetchData() {
   loading.value = true
   imgError.value = false
   try {
-    const res = await getAuthors({ id: Number(route.params.id) })
-    author.value = res.data.data as AuthorItem
+    const res = await getAuthorDetail(Number(route.params.id))
+    author.value = res.data.data
   } catch (e) { console.error('Failed to load author', e); author.value = null }
   finally { loading.value = false }
 }

@@ -13,8 +13,8 @@ const loading = ref(false)
 async function fetchData() {
   loading.value = true
   try {
-    const res = await getQuotes({ pageNum: pageNum.value })
-    quotes.value = res.data.data || []
+    const res = await getQuotes({ page: pageNum.value - 1 })
+    quotes.value = res.data.data.content
   } catch (e) { console.error('Failed to load quotes', e); quotes.value = [] }
   finally { loading.value = false }
 }

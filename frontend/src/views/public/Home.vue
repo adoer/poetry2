@@ -12,7 +12,7 @@ const router = useRouter()
 const userStore = useUserStore()
 const recommendList = ref<RecommendItem[]>([])
 const categories = ref<string[]>([])
-const writers = ref<{ name: string; id: number }[]>([])
+const writers = ref<string[]>([])
 const likedMap = ref<Record<number, boolean>>({})
 const writerImgErrors = ref<Set<number>>(new Set())
 
@@ -36,7 +36,7 @@ onMounted(async () => {
   } catch (e) { console.error('Failed to load recommendations', e) }
   try {
     const res = await getCategories()
-    categories.value = (res.data.data || []).map(c => c.name)
+    categories.value = res.data.data || []
   } catch (e) { console.error('Failed to load categories', e) }
   try {
     const res = await getWriters()
@@ -59,13 +59,7 @@ async function likeClick(item: any) {
   const wasLiked = likedMap.value[item.id]
   try {
     if (!wasLiked) {
-      const res = await addFavorite({
-        id: String(item.reComType === 'Quotes' ? item.poetryId : item.id),
-        type: item.reComType,
-        title: item.title || '',
-        content: item.reComType === 'Quotes' ? item.content : '',
-        writer: item.writer,
-      })
+      const res = await addFavorite({ targetId: Number(item.reComType === 'Quotes' ? item.poetryId : item.id), type: item.reComType })
       if (res.data.code === 200) {
         ElMessage.success('收藏成功')
         likedMap.value[item.id] = true
@@ -74,7 +68,7 @@ async function likeClick(item: any) {
         likedMap.value[item.id] = true
       }
     } else {
-      const res = await deleteFavorite({ contentId: String(item.id) })
+      const res = await deleteFavorite(item.id!)
       if (res.data.code === 200) {
         ElMessage.success('已取消收藏')
         likedMap.value[item.id] = false
