@@ -3,7 +3,7 @@ import axiosRetry from 'axios-retry'
 import type {
   ApiResult, LoginRequest, LoginResponse, SignupRequest,
   PoesyItem, AuthorItem, QuotesItem, FavoriteItem,
-  RecommendItem, SearchResult
+  RecommendItem, SearchResult, Category, NewsItem
 } from '../types'
 
 let routerInstance: ReturnType<typeof import('vue-router').createRouter> | null = null
@@ -80,13 +80,63 @@ export function getQuotes(params: { pageNum?: number }) {
   return http.get<ApiResult<QuotesItem[]>>('/quotes', { params })
 }
 
+// --- Categories (poetry) ---
+
 export function getCategories() {
-  return http.get<ApiResult<string[]>>('/category')
+  return http.get<ApiResult<Category[]>>('/category')
 }
 
 export function getCategoryDetail(category: string) {
   return http.get<ApiResult<{ id: number; writer: string; title: string }[]>>('/category/detail', { params: { category } })
 }
+
+// --- Categories (news admin) ---
+
+export function createCategory(name: string) {
+  return http.post<ApiResult<Category>>('/admin/category', { name })
+}
+
+export function updateCategory(id: number, name: string) {
+  return http.put<ApiResult<Category>>(`/admin/category/${id}`, { name })
+}
+
+export function deleteCategory(id: number) {
+  return http.delete<ApiResult<void>>(`/admin/category/${id}`)
+}
+
+// --- News (public) ---
+
+export function getNews(params: { page: number; size: number; categoryId?: number; keyword?: string }) {
+  return http.get<ApiResult<{ content: NewsItem[]; totalElements: number }>>('/news', { params })
+}
+
+export function getNewsDetail(id: number) {
+  return http.get<ApiResult<NewsItem>>(`/news/${id}`)
+}
+
+// --- News (admin) ---
+
+export function getAdminNews(params: { keyword?: string; page: number; size: number }) {
+  return http.get<ApiResult<{ content: NewsItem[]; totalElements: number }>>('/admin/news', { params })
+}
+
+export function getAdminNewsDetail(id: number) {
+  return http.get<ApiResult<NewsItem>>(`/admin/news/${id}`)
+}
+
+export function createNews(data: { title: string; content: string; summary: string; coverImage: string; categoryId: number; status?: string }) {
+  return http.post<ApiResult<NewsItem>>('/admin/news', data)
+}
+
+export function updateNews(id: number, data: { title: string; content: string; summary: string; coverImage: string; categoryId: number; status?: string }) {
+  return http.put<ApiResult<NewsItem>>(`/admin/news/${id}`, data)
+}
+
+export function deleteNews(id: number) {
+  return http.delete<ApiResult<void>>(`/admin/news/${id}`)
+}
+
+// --- Search & Recommendations ---
 
 export function searchAll(keyword: string) {
   return http.get<ApiResult<SearchResult>>('/searchAll', { params: { keyword } })

@@ -36,7 +36,7 @@ onMounted(async () => {
   } catch (e) { console.error('Failed to load recommendations', e) }
   try {
     const res = await getCategories()
-    categories.value = res.data.data || []
+    categories.value = (res.data.data || []).map(c => c.name)
   } catch (e) { console.error('Failed to load categories', e) }
   try {
     const res = await getWriters()
@@ -219,7 +219,8 @@ function copyClick(item: any) {
     </div>
 
     <div class="pt-24 border-t pb-24 border-sepia/20">
-      <CategoryWriter :categories="categories" :writers="writers" :type-limit="30" :writer-limit="30" />
+      <!-- <CategoryWriter :categories="categories" :writers="writers" :type-limit="30" :writer-limit="30" /> -->
+      <CategoryWriter layout="sidebar" :type-limit="0" :writer-limit="0" />
     </div>
   </div>
 </template>
