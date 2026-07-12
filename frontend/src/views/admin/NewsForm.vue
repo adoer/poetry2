@@ -87,11 +87,12 @@ async function handleSave() {
 
   loading.value = true
   try {
+    const payload = { ...form.value, categoryId: form.value.categoryId! }
     if (isEdit.value) {
-      await updateNews(getNumericId(), form.value)
+      await updateNews(getNumericId(), payload)
       ElMessage.success('更新成功')
     } else {
-      await createNews(form.value)
+      await createNews(payload)
       ElMessage.success('发布成功')
     }
     router.push({ name: 'AdminNews' })
