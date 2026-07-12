@@ -41,7 +41,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push backend image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: backend/Dockerfile
@@ -50,9 +50,10 @@ jobs:
             ${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ github.repository }}/backend:latest
           cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Build and push frontend image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: frontend/Dockerfile
@@ -61,6 +62,7 @@ jobs:
             ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ github.repository }}/frontend:latest
           cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
