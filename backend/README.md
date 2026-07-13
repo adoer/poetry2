@@ -1,4 +1,4 @@
-# 新闻管理系统后端
+# 诗词管理系统后端
 
 ## 一、技术架构
 
@@ -36,8 +36,8 @@ backend/
 ├── pom.xml                              # Maven 项目配置，声明依赖和构建插件
 ├── src/
 │   ├── main/
-│   │   ├── java/com/news/
-│   │   │   ├── NewsApplication.java     # Spring Boot 启动入口
+│   │   ├── java/com/poetry/
+│   │   │   ├── PoetryApplication.java     # Spring Boot 启动入口
 │   │   │   ├── config/                  # 配置层
 │   │   │   │   ├── CorsConfig.java
 │   │   │   │   ├── JwtAuthenticationFilter.java
@@ -282,7 +282,7 @@ cd backend
 mvn clean package -DskipTests
 
 # 启动
-java -jar target/news-backend-1.0.0.jar
+java -jar target/poetry-backend-1.0.0.jar
 
 # 或直接 Maven 启动
 mvn spring-boot:run
