@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '../store/user'
 import { logout } from '../api'
@@ -9,8 +10,8 @@ const userStore = useUserStore()
 async function handleLogout() {
   try {
     await logout()
-  } catch (e) {
-    console.error('Logout API call failed', e)
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || '退出失败')
   }
   userStore.logout()
   router.push({ name: 'Login' })

@@ -23,6 +23,7 @@ D:\learn\project\poetry2\backend\src\main\java\com\poetry\entity\Poesy.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\entity\Quotes.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\entity\User.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\entity\UserRole.java
+D:\learn\project\poetry2\backend\src\main\java\com\poetry\entity\VerificationToken.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\exception\BusinessException.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\exception\GlobalExceptionHandler.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\exception\ResourceNotFoundException.java
@@ -32,13 +33,16 @@ D:\learn\project\poetry2\backend\src\main\java\com\poetry\repository\FavoriteRep
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\repository\PoesyRepository.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\repository\QuotesRepository.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\repository\UserRepository.java
+D:\learn\project\poetry2\backend\src\main\java\com\poetry\repository\VerificationTokenRepository.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\service\AuthorsService.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\service\AuthService.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\service\CategoryService.java
+D:\learn\project\poetry2\backend\src\main\java\com\poetry\service\EmailService.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\service\FavoriteService.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\service\impl\AuthorsServiceImpl.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\service\impl\AuthServiceImpl.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\service\impl\CategoryServiceImpl.java
+D:\learn\project\poetry2\backend\src\main\java\com\poetry\service\impl\EmailServiceImpl.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\service\impl\FavoriteServiceImpl.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\service\impl\PoesyServiceImpl.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\service\impl\QuotesServiceImpl.java
@@ -52,3 +56,5 @@ D:\learn\project\poetry2\backend\src\main\java\com\poetry\util\CaptchaCache.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\util\CaptchaGenerator.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\util\JwtUtil.java
 D:\learn\project\poetry2\backend\src\main\java\com\poetry\util\TokenBlacklist.java
+D:\learn\project\poetry2\backend\src\main\java\com\poetry\validation\StrongPassword.java
+D:\learn\project\poetry2\backend\src\main\java\com\poetry\validation\StrongPasswordValidator.java

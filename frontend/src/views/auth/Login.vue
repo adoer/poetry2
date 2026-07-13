@@ -21,7 +21,7 @@ async function refreshCaptcha() {
   try {
     const res = await getCaptcha()
     captchaImage.value = res.data.data.image
-  } catch { error.value = '获取验证码失败' }
+  } catch (e: any) { error.value = e.response?.data?.message || '获取验证码失败' }
 }
 
 async function handleLogin() {
@@ -89,7 +89,7 @@ function sendSmsCode() {
               </el-tabs>
               <el-form @submit.prevent="handleLogin" label-width="auto" status-icon>
                 <el-form-item label="账号">
-                  <el-input v-model="username" placeholder="手机号" />
+                  <el-input v-model="username" :placeholder="activeName === 'passLogin' ? '请输入账号' : '请输入手机号'" />
                 </el-form-item>
                 <el-form-item label="密码" v-show="activeName === 'passLogin'">
                   <el-input v-model="password" type="password" show-password placeholder="请输入密码" />

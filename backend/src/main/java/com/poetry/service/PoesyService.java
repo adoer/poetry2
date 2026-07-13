@@ -11,4 +11,5 @@ public interface PoesyService {
     int getTotalPages();
     Map<String, Object> getPoesyListPage(int page, int size, boolean recommended);
     Map<String, Object> getPoesyListPage(int page, int size, boolean recommended, String keyword, String writer);
+    Map<String, Object> getPoesyListPage(int page, int size, boolean recommended, String keyword, String writer, String username);
 }

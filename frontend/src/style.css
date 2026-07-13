@@ -14,3 +14,93 @@ a {
 }
 a:hover { text-decoration: underline; }
 a.grey { color: #65645F; }
+
+/* ===== Element Plus Message Box - Poetry Theme ===== */
+.el-overlay {
+  background-color: rgba(0, 0, 0, 0.35);
+}
+
+.el-message-box {
+  --el-messagebox-bg-color: #faf9f5;
+  --el-messagebox-border-color: rgba(139, 115, 85, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+  padding: 24px;
+  width: 380px;
+}
+
+.el-message-box__header {
+  padding: 0 0 12px;
+}
+
+.el-message-box__title {
+  font-family: 'Ma Shan Zheng', 'STKaiti', 'KaiTi', cursive;
+  font-size: 22px;
+  color: #1a1a1a;
+  font-weight: 400;
+}
+
+.el-message-box__title .el-message-box__status {
+  color: #c23a2b;
+}
+
+.el-message-box__content {
+  padding: 8px 0;
+}
+
+.el-message-box__message {
+  font-family: 'Noto Serif SC', 'SimSun', 'STSong', serif;
+  font-size: 14px;
+  color: #5D6146;
+  line-height: 1.6;
+}
+
+.el-message-box__btns {
+  padding: 16px 0 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.el-message-box__btns .el-button {
+  border-radius: 8px;
+  height: 36px;
+  padding: 0 20px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+}
+
+.el-message-box__btns .el-button--primary {
+  background: linear-gradient(135deg, #c23a2b 0%, #a83224 100%);
+  border: none;
+  color: #fff;
+}
+
+.el-message-box__btns .el-button--primary:hover {
+  box-shadow: 0 4px 15px rgba(194, 58, 43, 0.4);
+}
+
+.el-message-box__btns .el-button--primary:active {
+  background: linear-gradient(135deg, #a83224 0%, #8b2520 100%);
+}
+
+.el-message-box__btns .el-button--default {
+  border: 1px solid rgba(139, 115, 85, 0.3);
+  color: #8b7355;
+  background: transparent;
+}
+
+.el-message-box__btns .el-button--default:hover {
+  border-color: #c23a2b;
+  color: #c23a2b;
+  background: rgba(194, 58, 43, 0.05);
+}
+
+.el-message-box__close {
+  color: #8b7355;
+  transition: color 0.2s;
+}
+
+.el-message-box__close:hover {
+  color: #c23a2b;
+}

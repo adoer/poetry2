@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import { getFavorites, deleteFavorite } from '../../api'
 import type { FavoriteItem } from '../../types'
 const favorites = ref<FavoriteItem[]>([])
@@ -9,16 +10,16 @@ async function fetchData() {
   loading.value = true
   try {
     const res = await getFavorites()
-    favorites.value = res.data.data.content || []
-  } catch (e) { console.error('Failed to load favorites', e); favorites.value = [] }
+    favorites.value = res.data.data || []
+  } catch (e: any) { console.error('Failed to load favorites', e); favorites.value = [] }
   finally { loading.value = false }
 }
 
 async function removeFav(item: FavoriteItem) {
   try {
-    await deleteFavorite(item.id)
+    await deleteFavorite({ id: item.id })
     favorites.value = favorites.value.filter(f => f.id !== item.id)
-  } catch (e) { console.error('Failed to remove favorite', e) }
+  } catch (e: any) { ElMessage.error(e.response?.data?.message || '操作失败') }
 }
 
 onMounted(fetchData)

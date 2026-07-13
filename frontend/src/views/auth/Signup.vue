@@ -20,7 +20,7 @@ async function refreshCaptcha() {
   try {
     const res = await getCaptcha()
     captchaImage.value = res.data.data.image
-  } catch { error.value = '获取验证码失败' }
+  } catch (e: any) { error.value = e.response?.data?.message || '获取验证码失败' }
 }
 
 async function handleSignup() {
@@ -33,11 +33,12 @@ async function handleSignup() {
   if (!agreeCheck.value) { error.value = '请同意用户协议'; return }
   loading.value = true; error.value = ''
   try {
-    const res = await signup({
+    const payload = {
       username: username.value,
       password: password.value,
       verificationCode: verificationCode.value,
-    })
+    }
+    const res = await signup(payload)
     userStore.setLogin(res.data.data)
     router.push('/')
   } catch (e: any) {

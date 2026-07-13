@@ -1,19 +1,51 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { forgotSendCode, forgotReset } from '../../api'
 
 const router = useRouter()
-const username = ref('')
+const email = ref('')
+const code = ref('')
 const password = ref('')
-const verificationCode = ref('')
 const loading = ref(false)
+const error = ref('')
+const codeSent = ref(false)
+const codeCountDown = ref(0)
 
-function handleSubmit() {
-  loading.value = true
-  setTimeout(() => {
-    loading.value = false
+function countDownFormatter(number: number) {
+  let second: any = number / 1000
+  second = second.toFixed()
+  return `${second}`
+}
+function countFinish() { codeCountDown.value = 0 }
+
+async function handleSendCode() {
+  if (!email.value) { error.value = '请输入邮箱'; return }
+  error.value = ''
+  codeCountDown.value = Date.now() + 1000 * 60
+  try {
+    await forgotSendCode(email.value)
+    ElMessage.success(`验证码已发送至 ${email.value}，请查收邮件`)
+    codeSent.value = true
+  } catch (e: any) {
+    error.value = e.response?.data?.message || '发送失败'
+    codeCountDown.value = 0
+  }
+}
+
+async function handleReset() {
+  if (!email.value || !code.value || !password.value) {
+    error.value = '请填写所有字段'; return
+  }
+  loading.value = true; error.value = ''
+  try {
+    await forgotReset({ email: email.value, code: code.value, password: password.value })
+    ElMessage.success('密码重置成功')
     router.push('/login')
-  }, 1000)
+  } catch (e: any) {
+    error.value = e.response?.data?.message || '重置失败'
+  } finally { loading.value = false }
 }
 </script>
 
@@ -39,18 +71,21 @@ function handleSubmit() {
               <p class="text-lg font-semibold text-ink mb-4 font-brush">重置密码</p>
             </div>
             <div class="flex-1">
-              <el-form @submit.prevent="handleSubmit" label-width="auto" status-icon>
-                <el-form-item label="账号" prop="username">
-                  <el-input v-model="username" placeholder="手机号" />
+              <el-alert v-if="error" :title="error" type="error" show-icon :closable="false" class="error-alert" />
+              <el-form @submit.prevent="handleReset" label-width="auto" status-icon>
+                <el-form-item label="邮箱" prop="email">
+                  <el-input v-model="email" placeholder="请输入绑定的邮箱" />
+                </el-form-item>
+                <el-form-item label="验证码" prop="code">
+                  <div class="flex items-center gap-2 w-full">
+                    <el-input v-model="code" placeholder="验证码" maxlength="6" class="flex-1" />
+                    <el-button v-if="!codeCountDown" class="code-btn" @click="handleSendCode">{{ codeSent ? '重新发送' : '发送验证码' }}</el-button>
+                    <el-countdown v-else class="text-sm flex-shrink-0" @finish="countFinish"
+                      title="" suffix="秒" :value="codeCountDown" :formatter="countDownFormatter" />
+                  </div>
                 </el-form-item>
                 <el-form-item label="新密码" prop="password">
                   <el-input v-model="password" type="password" show-password placeholder="请输入新密码" />
-                </el-form-item>
-                <el-form-item label="验证码" prop="verificationCode">
-                  <div class="flex items-center gap-2 w-full">
-                    <el-input v-model="verificationCode" placeholder="验证码" maxlength="4" class="flex-1" />
-                    <el-button class="code-btn">发送验证码</el-button>
-                  </div>
                 </el-form-item>
                 <el-form-item>
                   <div class="w-full flex justify-between items-center">
@@ -162,6 +197,7 @@ function handleSubmit() {
   border-color: #c23a2b;
 }
 :deep(.el-form-item__label) { color: #5D6146; }
+.error-alert { margin-bottom: 16px; }
 
 @media (max-width: 768px) {
   .login-wrapper { flex-direction: column; }

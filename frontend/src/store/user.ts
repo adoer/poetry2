@@ -4,8 +4,8 @@ import { ref, computed } from 'vue'
 interface UserInfo {
   username: string
   role?: string
-  bindwx?: boolean
   bindtel?: boolean
+  email?: string
 }
 
 export const useUserStore = defineStore('user', () => {
@@ -23,9 +23,9 @@ export const useUserStore = defineStore('user', () => {
   const isAdmin = computed(() => userInfo.value?.role === 'ADMIN')
   const username = computed(() => userInfo.value?.username || '')
 
-  function setLogin(data: { token: string; username: string; role?: string; bindwx?: boolean; bindtel?: boolean }) {
+  function setLogin(data: { token: string; username: string; role?: string; bindtel?: boolean; email?: string }) {
     token.value = data.token
-    const info: UserInfo = { username: data.username, role: data.role, bindwx: data.bindwx, bindtel: data.bindtel }
+    const info: UserInfo = { username: data.username, role: data.role, bindtel: data.bindtel, email: data.email }
     userInfo.value = info
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(info))

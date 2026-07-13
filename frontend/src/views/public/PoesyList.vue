@@ -60,23 +60,23 @@ async function likeClick(item: PoesyItem) {
   const isLiked = likedMap.value[item.id]
   try {
     if (!isLiked) {
-      const res = await addFavorite({ targetId: item.id, type: 'Poesy' })
+      const res = await addFavorite({ id: item.id, type: 'Poesy', title: item.title, content: item.content, writer: item.writer })
       if (res.data.code === 200) {
         ElMessage.success('收藏成功')
         likedMap.value[item.id] = true
-      } else if (res.data.code === 201) {
+      } else if (res.data.code === 409) {
         ElMessage.warning('已收藏')
         likedMap.value[item.id] = true
       }
     } else {
-      const res = await deleteFavorite(item.id)
+      const res = await deleteFavorite({ contentId: item.id })
       if (res.data.code === 200) {
         ElMessage.success('已取消收藏')
         likedMap.value[item.id] = false
       }
     }
-  } catch {
-    ElMessage.error('操作失败')
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || '操作失败')
   }
 }
 

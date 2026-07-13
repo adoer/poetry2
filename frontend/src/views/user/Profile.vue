@@ -2,9 +2,9 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, ElCountdown } from 'element-plus'
-import { Star, EditPen, Iphone, ChatLineSquare, User } from '@element-plus/icons-vue'
+import { Star, EditPen, Iphone, Message, User } from '@element-plus/icons-vue'
 import { useUserStore } from '../../store/user'
-import { modifyPassword, getFavorites, deleteFavorite } from '../../api'
+import { modifyPassword, getFavorites, deleteFavorite, sendVerificationEmail, verifyEmail } from '../../api'
 import InkBlobCanvas from '../../components/InkBlobCanvas.vue'
 import type { FavoriteItem } from '../../types'
 
@@ -13,8 +13,7 @@ const userStore = useUserStore()
 
 const passwordOld = ref('')
 const passwordNew = ref('')
-const passwordConfirm = ref('')
-const changeUsername = ref('')
+const changeUsername = ref(userStore.username)
 const loading = ref(false)
 const msg = ref('')
 const activeName = ref('myFavoriteVal')
@@ -26,7 +25,7 @@ const getIcon = (value: string) => {
     myFavoriteVal: Star,
     changePasswordVal: EditPen,
     phoneNumberVal: Iphone,
-    weixinGZHVal: ChatLineSquare,
+    bindEmailVal: Message,
     quitLoginVal: User,
   }
   return iconMap[value] || Star
@@ -36,18 +35,14 @@ const leftArr = reactive([
   { name: '我的收藏', value: 'myFavoriteVal' },
   { name: '修改密码', value: 'changePasswordVal' },
   { name: '绑定手机号', value: 'phoneNumberVal' },
-  { name: '绑定公众号', value: 'weixinGZHVal' },
+  { name: '绑定邮箱', value: 'bindEmailVal' },
   { name: '退出登录', value: 'quitLoginVal' },
 ])
 
 const bindtel = computed(() => userStore.userInfo?.bindtel)
-const bindwx = computed(() => userStore.userInfo?.bindwx)
 
 const leftArrCom = computed(() => {
   let arr = [...leftArr]
-  if (bindwx.value) {
-    arr = arr.filter(el => el.name !== '绑定公众号')
-  }
   if (bindtel.value) {
     const idx = arr.findIndex(el => el.name === '绑定手机号')
     if (idx >= 0) arr[idx].name = '修改手机号'
@@ -66,8 +61,10 @@ const rules = reactive({
   verificationCode: [{ required: true, message: '请输入', trigger: 'blur' }],
 })
 const countDownValue = ref(0)
-const codeUrl = ref('')
-const refreshWxCode = ref(false)
+const bindEmail = ref('')
+const bindEmailCode = ref('')
+const emailCountDown = ref(0)
+const emailBindDone = ref(false)
 
 function countDownFormatter(number: number) {
   let second: any = number / 1000
@@ -75,25 +72,54 @@ function countDownFormatter(number: number) {
   return `${second}`
 }
 function countFinish() { countDownValue.value = 0 }
+function emailCountFinish() { emailCountDown.value = 0 }
+
+async function handleSendEmailCode() {
+  if (!bindEmail.value) { ElMessage.warning('请输入邮箱'); return }
+  emailCountDown.value = Date.now() + 1000 * 60
+  try {
+    await sendVerificationEmail(bindEmail.value)
+    ElMessage.success(`验证码已发送至 ${bindEmail.value}，请查收邮件`)
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || '发送失败')
+    emailCountDown.value = 0
+  }
+}
+
+async function handleBindEmail() {
+  if (!bindEmail.value || !bindEmailCode.value) { ElMessage.warning('请填写所有字段'); return }
+  try {
+    await verifyEmail(bindEmailCode.value)
+    ElMessage.success('邮箱绑定成功')
+    emailBindDone.value = true
+    userStore.setLogin({ ...userStore.$state, email: bindEmail.value } as any)
+    bindEmail.value = ''
+    bindEmailCode.value = ''
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || '绑定失败')
+  }
+}
 
 async function fetchFavorites() {
   favLoading.value = true
   try {
     const res = await getFavorites()
-    favList.value = res.data.data.content || []
-  } catch {}
+    favList.value = res.data.data || []
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || '加载失败')
+  }
   finally { favLoading.value = false }
 }
 
 async function cancelFavorite(item: FavoriteItem) {
   try {
-    const res = await deleteFavorite(item.id)
+    const res = await deleteFavorite({ id: item.id })
     if (res.data.code === 200) {
       ElMessage.success('已取消收藏')
       fetchFavorites()
     }
-  } catch {
-    ElMessage.error('操作失败')
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || '操作失败')
   }
 }
 
@@ -101,14 +127,11 @@ async function handleModifyPassword() {
   if (!passwordOld.value || !passwordNew.value) {
     msg.value = '请填写所有字段'; return
   }
-  if (passwordNew.value !== passwordConfirm.value) {
-    msg.value = '两次密码不一致'; return
-  }
   loading.value = true; msg.value = ''
   try {
     await modifyPassword({ passwordOld: passwordOld.value, passwordNew: passwordNew.value })
     msg.value = '修改成功'
-    passwordOld.value = ''; passwordNew.value = ''; passwordConfirm.value = ''
+    passwordOld.value = ''; passwordNew.value = ''
   } catch (e: any) {
     msg.value = e.response?.data?.message || '修改失败'
   } finally { loading.value = false }
@@ -130,15 +153,17 @@ function itemClick(item: any) {
     handleLogout()
     return
   }
+  if (item.value === 'bindEmailVal') {
+    activeName.value = item.value
+    emailBindDone.value = false
+    return
+  }
   if (item.value === 'myFavoriteVal') {
     activeName.value = item.value
     fetchFavorites()
     return
   }
   activeName.value = item.value
-  if (item.value === 'weixinGZHVal') {
-    bindwxCode()
-  }
 }
 
 async function getCode() {
@@ -152,16 +177,6 @@ function bindTelClick() {
   ruleForm.username = ''
   ruleForm.verificationCode = ''
   ruleForm.newTel = ''
-}
-
-function bindwxCode() {
-  codeUrl.value = ''
-  refreshWxCode.value = false
-}
-
-function reGetCode() {
-  bindwxCode()
-  refreshWxCode.value = false
 }
 
 onMounted(() => {
@@ -218,7 +233,7 @@ onMounted(() => {
               <div class="mt-8" style="width: 300px;">
                 <el-form @submit.prevent="handleModifyPassword" label-width="auto" status-icon>
                   <el-form-item label="账号">
-                    <el-input v-model="changeUsername" placeholder="手机号" />
+                    <el-input v-model="changeUsername" disabled />
                   </el-form-item>
                   <el-form-item label="原密码">
                     <el-input v-model="passwordOld" type="password" show-password />
@@ -256,27 +271,33 @@ onMounted(() => {
               </div>
             </div>
 
-            <div v-if="activeName === 'weixinGZHVal'" class="flex flex-col items-center py-12">
-              <div class="seal mb-4">
-                <span class="text-xs text-white/90">绑定</span>
+            <div v-if="activeName === 'bindEmailVal'" class="max-w-md mx-auto mt-4">
+              <div class="text-center mb-8">
+                <h3 class="text-xl text-ink font-medium">绑定邮箱</h3>
+                <p v-if="userStore.userInfo?.email || emailBindDone" class="text-sm text-jade mt-2">已绑定：{{ userStore.userInfo?.email }}</p>
               </div>
-              <p class="text-xl text-ink font-medium mb-2">绑定公众号</p>
-              <p class="text-sm text-sepia mb-6">关注后自动绑定，更多精彩内容及时推送</p>
-              <div class="relative p-4 bg-white rounded-lg border border-sepia/20 shadow-sm">
-                <div v-if="refreshWxCode" @click="reGetCode"
-                  class="absolute top-0 left-0 cursor-pointer flex justify-center items-center w-full h-full bg-rice/95 text-vermillion rounded-lg">
-                  <span class="font-medium">点击重新获取</span>
-                </div>
-                <div v-if="codeUrl" class="w-48 h-48 bg-gray-100 flex items-center justify-center text-sepia text-sm">二维码区域</div>
-                <div v-else class="w-48 h-48 bg-gray-50 flex items-center justify-center text-sepia text-sm">加载中...</div>
-              </div>
+              <el-form label-width="80px" class="profile-form" status-icon>
+                <el-form-item label="邮箱">
+                  <el-input v-model="bindEmail" placeholder="请输入邮箱地址" :disabled="!!userStore.userInfo?.email && !emailBindDone" />
+                </el-form-item>
+                <el-form-item label="验证码">
+                  <div class="flex justify-between items-center w-full">
+                    <el-input class="flex-1 mr-2" v-model="bindEmailCode" placeholder="请输入验证码" />
+                    <el-button v-if="!emailCountDown" @click="handleSendEmailCode" class="code-btn">发送验证码</el-button>
+                    <el-countdown v-else class="text-sm flex-shrink-0" @finish="emailCountFinish"
+                      title="" suffix="秒" :value="emailCountDown" :formatter="countDownFormatter" />
+                  </div>
+                </el-form-item>
+                <el-form-item class="mt-8">
+                  <el-button type="primary" @click="handleBindEmail" class="submit-btn w-full">
+                    确认绑定
+                  </el-button>
+                </el-form-item>
+              </el-form>
             </div>
 
             <div v-if="activeName === 'phoneNumberVal'" class="max-w-md mx-auto mt-4">
               <div class="text-center mb-8">
-                <div class="seal w-10 h-10 mb-3 mx-auto">
-                  <span class="text-xs text-white/90">绑</span>
-                </div>
                 <h3 class="text-xl text-ink font-medium">{{ bindtel ? '修改手机号' : '绑定手机号' }}</h3>
               </div>
               <el-form :model="ruleForm" :rules="rules" label-width="80px" class="profile-form" status-icon>

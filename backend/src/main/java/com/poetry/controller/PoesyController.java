@@ -2,6 +2,7 @@ package com.poetry.controller;
 
 import com.poetry.dto.Result;
 import com.poetry.service.PoesyService;
+import com.poetry.util.JwtUtil;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -12,9 +13,11 @@ import java.util.Map;
 public class PoesyController {
 
     private final PoesyService poesyService;
+    private final JwtUtil jwtUtil;
 
-    public PoesyController(PoesyService poesyService) {
+    public PoesyController(PoesyService poesyService, JwtUtil jwtUtil) {
         this.poesyService = poesyService;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping
@@ -43,13 +46,21 @@ public class PoesyController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "all") String type,
             @RequestParam(required = false) String writer,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestHeader(value = "Authorization", required = false) String token) {
         if (keyword != null && ("all".equals(keyword) || "tuijian".equals(keyword))) {
             type = keyword;
             keyword = null;
         }
         boolean recommended = "tuijian".equals(type);
-        return Result.success(poesyService.getPoesyListPage(page, size, recommended, keyword, writer));
+        String username = null;
+        if (token != null && token.startsWith("Bearer ")) {
+            try {
+                username = jwtUtil.getUsername(token.substring(7));
+            } catch (Exception ignored) {
+            }
+        }
+        return Result.success(poesyService.getPoesyListPage(page, size, recommended, keyword, writer, username));
     }
 
     @GetMapping("/{id}")

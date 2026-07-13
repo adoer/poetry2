@@ -135,7 +135,9 @@ async function getSearchData() {
     searchData.Titles = Titles
 
     popoverVisible.value = true
-  } catch {}
+  } catch (e: any) {
+    console.error('Search failed', e)
+  }
 }
 
 function clearFunc() {

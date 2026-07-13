@@ -9,4 +9,8 @@ public interface AuthService {
     LoginResponse signup(SignupRequest request);
     void modifyPassword(String username, String passwordOld, String passwordNew);
     void logout(String token);
+    void sendVerificationEmail(String username, String email);
+    void verifyEmail(String username, String token);
+    void forgotPassword(String email, String code, String newPassword);
+    void forgotSendCode(String email);
 }

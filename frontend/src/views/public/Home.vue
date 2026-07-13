@@ -59,23 +59,23 @@ async function likeClick(item: any) {
   const wasLiked = likedMap.value[item.id]
   try {
     if (!wasLiked) {
-      const res = await addFavorite({ targetId: Number(item.reComType === 'Quotes' ? item.poetryId : item.id), type: item.reComType })
+      const res = await addFavorite({ id: item.reComType === 'Quotes' ? (item.poetryId ?? '') : item.id, type: item.reComType, title: item.title ?? item.poetryName, content: item.content, writer: item.writer })
       if (res.data.code === 200) {
         ElMessage.success('收藏成功')
         likedMap.value[item.id] = true
-      } else if (res.data.code === 201) {
+      } else if (res.data.code === 409) {
         ElMessage.warning('已收藏')
         likedMap.value[item.id] = true
       }
     } else {
-      const res = await deleteFavorite(item.id!)
+      const res = await deleteFavorite({ contentId: item.id! })
       if (res.data.code === 200) {
         ElMessage.success('已取消收藏')
         likedMap.value[item.id] = false
       }
     }
-  } catch {
-    ElMessage.error('操作失败')
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || '操作失败')
   }
 }
 

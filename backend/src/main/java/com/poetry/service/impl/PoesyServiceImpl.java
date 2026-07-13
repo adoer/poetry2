@@ -1,6 +1,7 @@
 package com.poetry.service.impl;
 
 import com.poetry.entity.Poesy;
+import com.poetry.repository.FavoriteRepository;
 import com.poetry.repository.PoesyRepository;
 import com.poetry.service.PoesyService;
 import org.springframework.data.domain.PageRequest;
@@ -17,9 +18,11 @@ public class PoesyServiceImpl implements PoesyService {
     private static final int MAX_PAGE = 5;
 
     private final PoesyRepository poesyRepository;
+    private final FavoriteRepository favoriteRepository;
 
-    public PoesyServiceImpl(PoesyRepository poesyRepository) {
+    public PoesyServiceImpl(PoesyRepository poesyRepository, FavoriteRepository favoriteRepository) {
         this.poesyRepository = poesyRepository;
+        this.favoriteRepository = favoriteRepository;
     }
 
     @Override
@@ -62,6 +65,11 @@ public class PoesyServiceImpl implements PoesyService {
 
     @Override
     public Map<String, Object> getPoesyListPage(int page, int size, boolean recommended, String keyword, String writer) {
+        return getPoesyListPage(page, size, recommended, keyword, writer, null);
+    }
+
+    @Override
+    public Map<String, Object> getPoesyListPage(int page, int size, boolean recommended, String keyword, String writer, String username) {
         if (page < 1) page = 1;
         int effectivePage;
         if (recommended) {
@@ -84,8 +92,23 @@ public class PoesyServiceImpl implements PoesyService {
             pageResult = poesyRepository.findAll(PageRequest.of(effectivePage, size));
         }
 
+        Set<String> favSet = new HashSet<>();
+        if (username != null && !username.isEmpty()) {
+            var favorites = favoriteRepository.findByUsernameOrderByCreateTimeDesc(username);
+            favSet = favorites.stream().map(f -> f.getContentId()).collect(Collectors.toSet());
+        }
+
+        Set<String> finalFavSet = favSet;
+        List<Map<String, Object>> content = pageResult.getContent().stream().map(p -> {
+            Map<String, Object> map = toMap(p);
+            if (finalFavSet.contains(String.valueOf(p.getId()))) {
+                map.put("like", true);
+            }
+            return map;
+        }).collect(Collectors.toList());
+
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("content", pageResult.getContent().stream().map(this::toMap).collect(Collectors.toList()));
+        result.put("content", content);
         result.put("totalPages", pageResult.getTotalPages());
         result.put("totalElements", pageResult.getTotalElements());
         return result;

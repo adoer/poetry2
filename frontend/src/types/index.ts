@@ -58,8 +58,8 @@ export interface LoginResponse {
   token: string
   username: string
   role?: string
-  bindwx: boolean
   bindtel: boolean
+  email?: string
 }
 
 export interface RecommendItem {

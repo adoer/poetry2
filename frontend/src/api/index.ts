@@ -23,6 +23,14 @@ axiosRetry(http, {
   shouldResetTimeout: true,
 })
 
+http.interceptors.request.use(config => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 http.interceptors.response.use(
   response => response,
   error => {
@@ -55,8 +63,20 @@ export function getCaptcha() {
   return http.get<ApiResult<{ image: string }>>('/captcha')
 }
 
-export function forgotPassword(data: { email: string; captcha: string }) {
-  return http.post<ApiResult<void>>('/forgot', data)
+export function sendVerificationEmail(email: string) {
+  return http.post<ApiResult<void>>('/send-verification-email', { email })
+}
+
+export function verifyEmail(code: string) {
+  return http.post<ApiResult<void>>('/verify-email', { code })
+}
+
+export function forgotSendCode(email: string) {
+  return http.post<ApiResult<void>>('/forgot/send-code', { email })
+}
+
+export function forgotReset(data: { email: string; code: string; password: string }) {
+  return http.post<ApiResult<void>>('/forgot/reset', data)
 }
 
 // --- Poems (poesy) ---
@@ -116,15 +136,15 @@ export function getWriters() {
 // --- Favorites ---
 
 export function getFavorites(params?: { type?: string; page?: number; size?: number }) {
-  return http.get<ApiResult<{ content: FavoriteItem[]; totalPages: number; totalElements: number }>>('/favorites', { params })
+  return http.get<ApiResult<FavoriteItem[]>>('/favorite', { params })
 }
 
-export function addFavorite(data: { targetId: number; type: string; [key: string]: any }) {
-  return http.post<ApiResult<void>>('/favorites', data)
+export function addFavorite(data: { id: string | number; type: string; title?: string; content?: string; writer?: string }) {
+  return http.post<ApiResult<void>>('/favorite', data)
 }
 
-export function deleteFavorite(id: number) {
-  return http.delete<ApiResult<void>>(`/favorites/${id}`)
+export function deleteFavorite(data: { contentId?: string | number; id?: string | number }) {
+  return http.delete<ApiResult<void>>('/favorite', { data })
 }
 
 // --- User Profile ---

@@ -4,14 +4,14 @@ public class LoginResponse {
 
     private String token;
     private String username;
-    private boolean bindwx;
     private boolean bindtel;
+    private String email;
 
-    public LoginResponse(String token, String username, boolean bindwx, boolean bindtel) {
+    public LoginResponse(String token, String username, boolean bindtel, String email) {
         this.token = token;
         this.username = username;
-        this.bindwx = bindwx;
         this.bindtel = bindtel;
+        this.email = email;
     }
 
     public String getToken() { return token; }
@@ -20,9 +20,9 @@ public class LoginResponse {
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
 
-    public boolean isBindwx() { return bindwx; }
-    public void setBindwx(boolean bindwx) { this.bindwx = bindwx; }
-
     public boolean isBindtel() { return bindtel; }
     public void setBindtel(boolean bindtel) { this.bindtel = bindtel; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 }

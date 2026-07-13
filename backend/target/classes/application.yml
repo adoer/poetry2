@@ -23,9 +23,24 @@ spring:
       connection-timeout: 5000
       pool-name: PoetryHikariCP
 
+  mail:
+    host: ${MAIL_HOST:smtp.qq.com}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    default-encoding: UTF-8
+    from: ${MAIL_USERNAME}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.ssl.enable: true
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
+      mail.smtp.socketFactory.class: javax.net.ssl.SSLSocketFactory
+
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: false
