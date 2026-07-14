@@ -212,7 +212,8 @@ onMounted(() => {
               <div class="avatar-circle mx-auto mb-3">
                 <span class="text-vermillion font-bold text-xl">{{ userStore.username?.charAt(0) || '诗' }}</span>
               </div>
-              <p class="text-ink font-medium">{{ userStore.username || '诗词爱好者' }}</p>
+              <p class="text-ink">{{ userStore.username || '诗词爱好者' }}</p>
+              <p class="text-ink text-[12px] mt-[5px]" v-if="userStore.userInfo?.email">{{ userStore.userInfo?.email }}</p>
             </div>
             <div class="space-y-2">
               <div v-for="(item, index) in leftArrCom" :key="index"
@@ -274,9 +275,9 @@ onMounted(() => {
             <div v-if="activeName === 'bindEmailVal'" class="max-w-md mx-auto mt-4">
               <div class="text-center mb-8">
                 <h3 class="text-xl text-ink font-medium">绑定邮箱</h3>
-                <p v-if="userStore.userInfo?.email || emailBindDone" class="text-sm text-jade mt-2">已绑定：{{ userStore.userInfo?.email }}</p>
+                <p v-if="userStore.userInfo?.email || emailBindDone" class="text-sm text-jade mt-2">邮箱已绑定：{{ userStore.userInfo?.email }}</p>
               </div>
-              <el-form label-width="80px" class="profile-form" status-icon>
+              <el-form label-width="80px" class="profile-form" status-icon v-if="!userStore.userInfo?.email">
                 <el-form-item label="邮箱">
                   <el-input v-model="bindEmail" placeholder="请输入邮箱地址" :disabled="!!userStore.userInfo?.email && !emailBindDone" />
                 </el-form-item>
