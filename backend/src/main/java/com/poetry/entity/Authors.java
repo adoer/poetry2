@@ -21,7 +21,7 @@ public class Authors {
     @Column(name = "headImageUrl", length = 100)
     private String headImageUrl;
 
-    @Column(name = "dynasty", length = 10)
+    @Column(name = "dynasty", length = 50)
     private String dynasty;
 
     public Integer getId() { return id; }
