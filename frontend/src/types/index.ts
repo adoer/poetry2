@@ -84,6 +84,22 @@ export interface SearchResult {
   Poesy: { id: number; content: string; title: string; writer: string }[]
 }
 
+export interface StatsOverview {
+  poesyCount: number
+  quotesCount: number
+  authorsCount: number
+  userCount: number
+}
+
+export interface RegistrationTrend {
+  daily: Record<string, number>
+}
+
+export interface FavoriteDistribution {
+  poesy: number
+  quotes: number
+}
+
 export interface ApiResult<T> {
   code: number
   message: string

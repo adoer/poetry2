@@ -67,9 +67,9 @@ public class AuthServiceImpl implements AuthService {
 
         boolean bindtel = user.getPhone() != null && user.getPhone().length() == 11;
 
-        String role = "admin".equals(user.getUsername()) ? "ADMIN" : "USER";
+        String role = "admin".equals(user.getVipLevel()) ? "ADMIN" : "USER";
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), role);
-        return new LoginResponse(token, user.getUsername(), bindtel, user.getEmail());
+        return new LoginResponse(token, user.getUsername(), role, bindtel, user.getEmail());
     }
 
     @Override
@@ -100,7 +100,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getId(), user.getUsername(), "USER");
-        return new LoginResponse(token, user.getUsername(), false, user.getEmail());
+        return new LoginResponse(token, user.getUsername(), "USER", false, user.getEmail());
     }
 
     @Override

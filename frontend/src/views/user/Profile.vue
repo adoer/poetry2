@@ -2,7 +2,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox, ElCountdown } from 'element-plus'
-import { Star, EditPen, Iphone, Message, User } from '@element-plus/icons-vue'
+import { Star, EditPen, Iphone, Message, User, Setting } from '@element-plus/icons-vue'
 import { useUserStore } from '../../store/user'
 import { modifyPassword, getFavorites, deleteFavorite, sendVerificationEmail, verifyEmail } from '../../api'
 import InkBlobCanvas from '../../components/InkBlobCanvas.vue'
@@ -20,32 +20,33 @@ const activeName = ref('myFavoriteVal')
 const favList = ref<FavoriteItem[]>([])
 const favLoading = ref(false)
 
-const getIcon = (value: string) => {
-  const iconMap: Record<string, any> = {
-    myFavoriteVal: Star,
-    changePasswordVal: EditPen,
-    phoneNumberVal: Iphone,
-    bindEmailVal: Message,
-    quitLoginVal: User,
-  }
-  return iconMap[value] || Star
+const iconMap: Record<string, any> = {
+  myFavoriteVal: Star,
+  changePasswordVal: EditPen,
+  phoneNumberVal: Iphone,
+  bindEmailVal: Message,
+  quitLoginVal: User,
+  adminVal: Setting,
 }
 
-const leftArr = reactive([
+const leftArr = [
   { name: '我的收藏', value: 'myFavoriteVal' },
   { name: '修改密码', value: 'changePasswordVal' },
   { name: '绑定手机号', value: 'phoneNumberVal' },
   { name: '绑定邮箱', value: 'bindEmailVal' },
   { name: '退出登录', value: 'quitLoginVal' },
-])
+]
 
 const bindtel = computed(() => userStore.userInfo?.bindtel)
 
 const leftArrCom = computed(() => {
-  let arr = [...leftArr]
+  const arr = leftArr.map(el => ({ ...el }))
   if (bindtel.value) {
     const idx = arr.findIndex(el => el.name === '绑定手机号')
     if (idx >= 0) arr[idx].name = '修改手机号'
+  }
+  if (userStore.isAdmin) {
+    arr.splice(arr.length - 1, 0, { name: '管理后台', value: 'adminVal' })
   }
   return arr
 })
@@ -148,22 +149,31 @@ async function handleLogout() {
   }).catch(() => {})
 }
 
-function itemClick(item: any) {
-  if (item.value === 'quitLoginVal') {
+function onMenuClick(e: MouseEvent) {
+  const target = (e.target as HTMLElement).closest('[data-value]') as HTMLElement
+  if (!target) return
+  const value = target.dataset.value
+  if (!value) return
+
+  if (value === 'quitLoginVal') {
     handleLogout()
     return
   }
-  if (item.value === 'bindEmailVal') {
-    activeName.value = item.value
+  if (value === 'adminVal') {
+    window.open('/admin', '_blank')
+    return
+  }
+  if (value === 'bindEmailVal') {
+    activeName.value = value
     emailBindDone.value = false
     return
   }
-  if (item.value === 'myFavoriteVal') {
-    activeName.value = item.value
+  if (value === 'myFavoriteVal') {
+    activeName.value = value
     fetchFavorites()
     return
   }
-  activeName.value = item.value
+  activeName.value = value
 }
 
 async function getCode() {
@@ -215,12 +225,12 @@ onMounted(() => {
               <p class="text-ink">{{ userStore.username || '诗词爱好者' }}</p>
               <p class="text-ink text-[12px] mt-[5px]" v-if="userStore.userInfo?.email">{{ userStore.userInfo?.email }}</p>
             </div>
-            <div class="space-y-2">
-              <div v-for="(item, index) in leftArrCom" :key="index"
-                @click="itemClick(item)"
+            <div class="space-y-2" @click="onMenuClick">
+              <div v-for="item in leftArrCom" :key="item.value"
+                :data-value="item.value"
                 class="menu-item cursor-pointer rounded-lg px-4 py-3 flex items-center gap-3 transition-all"
                 :class="{ active: activeName === item.value }">
-                <el-icon size="18"><component :is="getIcon(item.value)" /></el-icon>
+                <el-icon size="18"><component :is="iconMap[item.value] || Star" /></el-icon>
                 <span>{{ item.name }}</span>
               </div>
             </div>
@@ -229,7 +239,7 @@ onMounted(() => {
 
         <div class="md:col-span-8">
           <div class="content-card rounded-xl p-6 min-h-[500px]">
-            <div v-if="activeName === 'changePasswordVal'">
+            <div v-show="activeName === 'changePasswordVal'">
               <el-alert v-if="msg" :title="msg" :type="msg === '修改成功' ? 'success' : 'error'" show-icon :closable="false" class="msg-alert" />
               <div class="mt-8" style="width: 300px;">
                 <el-form @submit.prevent="handleModifyPassword" label-width="auto" status-icon>
@@ -249,7 +259,7 @@ onMounted(() => {
               </div>
             </div>
 
-            <div v-if="activeName === 'myFavoriteVal'">
+            <div v-show="activeName === 'myFavoriteVal'">
               <div class="myFavorite h-full w-full">
                 <div class="item flex justify-between items-center" v-for="(item, index) in favList" :key="index">
                   <div>
@@ -272,7 +282,7 @@ onMounted(() => {
               </div>
             </div>
 
-            <div v-if="activeName === 'bindEmailVal'" class="max-w-md mx-auto mt-4">
+            <div v-show="activeName === 'bindEmailVal'" class="max-w-md mx-auto mt-4">
               <div class="text-center mb-8">
                 <h3 class="text-xl text-ink font-medium">绑定邮箱</h3>
                 <p v-if="userStore.userInfo?.email || emailBindDone" class="text-sm text-jade mt-2">邮箱已绑定：{{ userStore.userInfo?.email }}</p>
@@ -297,7 +307,7 @@ onMounted(() => {
               </el-form>
             </div>
 
-            <div v-if="activeName === 'phoneNumberVal'" class="max-w-md mx-auto mt-4">
+            <div v-show="activeName === 'phoneNumberVal'" class="max-w-md mx-auto mt-4">
               <div class="text-center mb-8">
                 <h3 class="text-xl text-ink font-medium">{{ bindtel ? '修改手机号' : '绑定手机号' }}</h3>
               </div>

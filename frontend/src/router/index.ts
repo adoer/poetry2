@@ -38,6 +38,17 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, role: 'ADMIN' },
     children: [
       { path: '', name: 'AdminDashboard', component: () => import('../views/admin/Dashboard.vue') },
+      { path: 'poesy', name: 'AdminPoesyList', component: () => import('../views/admin/poesy/PoesyList.vue') },
+      { path: 'poesy/create', name: 'AdminPoesyCreate', component: () => import('../views/admin/poesy/PoesyEdit.vue') },
+      { path: 'poesy/:id/edit', name: 'AdminPoesyEdit', component: () => import('../views/admin/poesy/PoesyEdit.vue'), props: true },
+      { path: 'quotes', name: 'AdminQuotesList', component: () => import('../views/admin/quotes/QuotesList.vue') },
+      { path: 'quotes/create', name: 'AdminQuotesCreate', component: () => import('../views/admin/quotes/QuotesEdit.vue') },
+      { path: 'quotes/:id/edit', name: 'AdminQuotesEdit', component: () => import('../views/admin/quotes/QuotesEdit.vue'), props: true },
+      { path: 'authors', name: 'AdminAuthorsList', component: () => import('../views/admin/authors/AuthorList.vue') },
+      { path: 'authors/create', name: 'AdminAuthorsCreate', component: () => import('../views/admin/authors/AuthorEdit.vue') },
+      { path: 'authors/:id/edit', name: 'AdminAuthorsEdit', component: () => import('../views/admin/authors/AuthorEdit.vue'), props: true },
+      { path: 'users', name: 'AdminUsersList', component: () => import('../views/admin/users/UserList.vue') },
+      { path: 'stats', name: 'AdminStats', component: () => import('../views/admin/stats/Stats.vue') },
     ],
   },
   {

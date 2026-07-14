@@ -24,4 +24,6 @@ public interface PoesyRepository extends JpaRepository<Poesy, Integer> {
            countQuery = "SELECT count(p) FROM Poesy p WHERE p.title LIKE %:keyword% OR p.content LIKE %:keyword%")
     org.springframework.data.domain.Page<Poesy> findByTitleContainingOrContentContaining(@Param("keyword") String keyword, org.springframework.data.domain.Pageable pageable);
 
+    @Query("SELECT MAX(p.id) FROM Poesy p")
+    Integer findMaxId();
 }

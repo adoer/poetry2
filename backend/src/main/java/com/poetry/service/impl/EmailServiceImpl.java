@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.CompletableFuture;
+
 @Service
 public class EmailServiceImpl implements EmailService {
 
@@ -29,22 +31,23 @@ public class EmailServiceImpl implements EmailService {
     @Override
     @Async
     public void sendVerificationCode(String to, String code) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(from, "拾光古诗文");
-            helper.setTo(to);
-            helper.setSubject("拾光古诗文 - 邮箱验证码");
+        CompletableFuture.runAsync(() -> {
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setFrom(from, "拾光古诗文");
+                helper.setTo(to);
+                helper.setSubject("拾光古诗文 - 邮箱验证码");
 
-            String html = buildHtml(code);
-            helper.setText(html, true);
+                String html = buildHtml(code);
+                helper.setText(html, true);
 
-            mailSender.send(message);
-            log.info("验证码邮件已发送至 {}", to);
-        } catch (MessagingException | UnsupportedEncodingException e) {
-            log.error("发送验证码邮件失败: {}", to, e);
-            throw new RuntimeException("邮件发送失败，请检查邮箱地址是否正确", e);
-        }
+                mailSender.send(message);
+                log.info("验证码邮件已发送至 {}", to);
+            } catch (MessagingException | UnsupportedEncodingException e) {
+                log.error("发送验证码邮件失败: {}", to, e);
+            }
+        });
     }
 
     private String buildHtml(String code) {
